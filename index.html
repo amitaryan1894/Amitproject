@@ -329,7 +329,7 @@
           }
 
           // Apply Title
-          $("h2.text-center").text(val(settings.title));
+          $("h2.text-center").html(val(settings.title));
 
 
 
@@ -847,7 +847,7 @@
 
             localStorage.setItem("settings", JSON.stringify(settings));
 
-            $("h2.text-center").text(val(settings.title));
+            $("h2.text-center").html(val(settings.title));
 
             $("#settingsModal").modal("hide");
 
@@ -887,6 +887,7 @@
 </body>
 
 </html>
+
 
 
 
