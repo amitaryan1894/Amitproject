@@ -97,6 +97,50 @@
       to{opacity:1; transform:scale(1)}
     }
 
+    /* -------- DESKTOP TREE POLISH -------- */
+    @media (min-width: 992px){
+      .tree{
+        position:relative;
+        width:900px;
+        height:420px;
+        margin-top:40px;
+      }
+
+      .tree::before{
+        content:'';
+        position:absolute;
+        top:0;
+        left:50%;
+        width:4px;
+        height:100%;
+        background:#adb5bd;
+        transform:translateX(-50%);
+        animation:growTrunk 1.2s ease forwards;
+      }
+
+      .branch{
+        position:absolute;
+        width:260px;
+      }
+
+      .left1{left:0; top:20px}
+      .left2{left:0; top:90px}
+      .left3{left:0; top:160px}
+      .left4{left:0; top:230px}
+
+      .right1{right:0; top:20px}
+      .right2{right:0; top:90px}
+      .right3{right:0; top:160px}
+      .right4{right:0; top:230px}
+    }
+
+    @keyframes growTrunk{
+      from{height:0}
+      to{height:100%}
+    }
+      to{opacity:1; transform:scale(1)}
+    }
+
     /* -------------------- RESPONSIVE DESIGN -------------------- */
     @media (max-width: 992px){
       .branch{width:90%;}
@@ -154,9 +198,11 @@
 
 <!-- ROOT SLIDE -->
 <div class="root" id="root">
-  <div>
-    <h4>मिशन शक्ति</h4>
-    <small>अररिया जिला</small>
+  <div class="logo-node">
+    <div>
+      <h5 class="mb-1">मिशन शक्ति</h5>
+      <small>अररिया जिला</small>
+    </div>
   </div>
 </div>
 <p id="rootText" class="mt-3"><b>महिला सुरक्षा • सम्मान • आत्मनिर्भरता</b></p>
