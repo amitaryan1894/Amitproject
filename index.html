@@ -337,8 +337,8 @@
             Utility Functions
           ----------------------------------------------------------*/
           function val(x) {
-  if (!x) return "";
-  return String(x).replace(/\*/g, "</br>");
+            if (!x) return "";
+            return String(x).replace(/\*/g, "</br>");
           }
           function valPair(a, b) { return (!a && !b) ? "" : `${val(a)} </br>( ${val(b)} )`; }
 
@@ -847,7 +847,7 @@
 
             localStorage.setItem("settings", JSON.stringify(settings));
 
-            $("h2.text-center").text(settings.title);
+            $("h2.text-center").text(val(settings.title));
 
             $("#settingsModal").modal("hide");
 
@@ -887,6 +887,7 @@
 </body>
 
 </html>
+
 
 
 
