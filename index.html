@@ -336,7 +336,10 @@
           /*---------------------------------------------------------
             Utility Functions
           ----------------------------------------------------------*/
-          function val(x) { return x || ""; }
+          function val(x) {
+  if (!x) return "";
+  return String(x).replace(/\*/g, "</br>");
+          }
           function valPair(a, b) { return (!a && !b) ? "" : `${val(a)} </br>( ${val(b)} )`; }
 
           // Format amount function with ROUND setting applied
@@ -885,6 +888,7 @@
 </body>
 
 </html>
+
 
 
 
