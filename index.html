@@ -133,7 +133,7 @@
           </thead>
           <tbody></tbody>
         </table>
-        <span class="round_note ms-7">Note: Total Amount is Rounded To The Nearest Rupee.</span>
+        <span class="round_note display-none ms-7">Note: Total Amount is Rounded To The Nearest Rupee.</span>
         
         <div class="row mt-8 text-center">
           <div class="col-4 sig_2 fw-bold"></div>
@@ -352,6 +352,15 @@
               maximumFractionDigits: settings.round ? 0 : 2
             });
           }
+
+          function toggleRoundNote() {
+            if (settings.round === true) {
+              $(".round_note").removeClass("display-none");
+            } else {
+              $(".round_note").addClass("display-none");
+            }
+          }
+          toggleRoundNote();
 
           function saveEmployees() {
             localStorage.setItem("employees", JSON.stringify(employees));
@@ -843,6 +852,8 @@
             if (settings.calculation_enable === true) { $("body").addClass("calcu-enable"); } else { $("body").removeClass("calcu-enable"); }
 
 
+            toggleRoundNote();
+
             renderTable();
           });
 
@@ -874,6 +885,7 @@
 </body>
 
 </html>
+
 
 
 
