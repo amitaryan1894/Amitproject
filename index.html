@@ -16,57 +16,12 @@
   <!-- Bootstrap 5 -->
   <link href="./node_modules/choices/css/choices.min.css" rel="stylesheet">
   <link href="./node_modules/flatpickr/css/flatpickr.min.css" rel="stylesheet">
+  <link href="./node_modules/tagsinput/tagsinput.css" rel="stylesheet">
   <link href="./style.css" rel="stylesheet">
 
 
   <style>
-    @media print {
-      body * {
-        visibility: hidden !important;
-      }
-
-      .a4,
-      .a4 * {
-        visibility: visible !important;
-      }
-
-      .a4 {
-        position: fixed !important;
-        left: 0;
-        top: 0;
-        background: white;
-        padding: 0;
-        margin: 0;
-        width: 21cm;
-        min-height: 29.7cm;
-        box-shadow: none !important;
-      }
-    }
-
-    .emp-name-cell {
-      position: relative;
-    }
-
-    .row-actions {
-      position: absolute;
-      right: 6px;
-      bottom: 6px;
-      display: none;
-      gap: 4px;
-    }
-
-    .emp-name-cell:hover .row-actions {
-      display: flex;
-    }
-
-    .row-actions .btn {
-      padding: 2px 6px;
-      font-size: 12px;
-      line-height: 1;
-    }
-    .calcu-enable .calcu {
-    display: none !important;
-}
+   @media print { body * { visibility: hidden !important; } .a4, .a4 * { visibility: visible !important; } .a4 { position: fixed !important; left: 0; top: 0; background: white; padding: 0; margin: 0; width: 51.3cm; min-height: 37cm; box-shadow: none !important; } } table { width: auto !important; table-layout: auto; white-space: nowrap; } th, td { width: 1%; white-space: nowrap; } .fs_amt { font-size: 20px; } .emp-name-cell { position: relative; } .row-actions { position: absolute; right: 6px; bottom: 6px; display: none; gap: 4px; } .emp-name-cell:hover .row-actions { display: flex; } .row-actions .btn { padding: 2px 6px; font-size: 12px; line-height: 1; } .calcu-enable .calcu { display: none !important; }
   </style>
 </head>
 
@@ -74,41 +29,105 @@
 
 <body>
   <main>
-    <div class="container-fluid">
-      <h2 class="mb-4 text-center">Salary Table Sheet Creator</h2>
 
+    
+    <!-- Sidebar START -->
+    <nav class="navbar sidebar navbar-expand-xl navbar-light bg-mode" style="z-index: 2000;">
+
+
+      <div class="offcanvas offcanvas-start flex-row custom-scrollbar h-100" data-bs-backdrop="true" tabindex="-1"
+        id="offcanvasSidebar">
+        <div class="offcanvas-body sidebar-content d-flex flex-column pt-4">
+
+
+          <!-- Sidebar menu START -->
+          <ul class="navbar-nav flex-column" id="navbar-sidebar">
+
+            <!-- Menu item -->
+
+            <li class="nav-item"> <a class="nav-link " href="./photos.html">media Cover</a></li>
+
+            <li class="nav-item"> <a class="nav-link active" href="./index.html">Salary Creater</a></li>
+
+
+          </ul>
+          <!-- Sidebar menu end -->
+
+
+        </div>
+      </div>
+    </nav>
+    <!-- Sidebar END -->
+
+
+        <div class="page-content">
+
+      <header class="navbar-light header-sticky border-bottom border-2">
+        <nav class="navbar">
+          <div class="container-fluid main-header">
+            <div class="d-flex">
+              <div class="d-grid navbar-expand-xl">
+                <button class="navbar-toggler ms-auto mx-3 p-0 p-sm-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasSidebar" aria-controls="offcanvasSidebar" aria-expanded="false" aria-label="Toggle navigation" data-bs-auto-close="outside">
+                  <span class="navbar-toggler-animation">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </span>
+                </button>
+              
+              </div>
+              <a class="navbar-brand" href="./index.html">
+                <img class="navbar-brand-item" src="./logo.jpg" alt="logo" title="K.D College Raniganj">
+              </a>
+            </div>
+           
+          </div>
+        </nav>
+      </header>
+
+    <div class="container-fluid">
+<div class="d-flex gap-3 flex-wrap align-items-center mb-3 mt-4">
       <button class="btn btn-primary mb-3" id="btnAdd">Add Employee</button>
       <button class="btn btn-success mb-3" onclick="window.print()">Print</button>
       <button class="btn btn-dark mb-3" data-bs-toggle="modal" data-bs-target="#settingsModal">Settings</button>
+      </div>
 
 
-
+      <div class="overflow-scroll w-100">
       <div class="a4">
-        <div class="a4">
-          <table class="table table-bordered text-center" id="empTable">
+        <h2 class="mb-4 text-center">Salary Table Sheet Creator</h2>
+        <table class="table table-bordered text-center" id="empTable">
 
-            <thead>
+          <thead>
 
-              <tr>
-                <th>#</th>
-                <th>Name Of Employee / (Designation)</th>
-                <th>Month/2025</th>
-                <th>Basic Salary</th>
-                <th>EPF@12%</th>
-                <th>ESIC@0.75%</th>
-                <th>EPF@13%</th>
-                <th>ESIC@3.25%</th>
-                <th>Total Deduction</th>
-                <th>Net Salary Payable</th>
-                <th>Total Approved Salary</th>
-                <th>Account Number/IFSC Code</th>
-                <th>Remarks</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
+            <tr>
+              <th>#</th>
+              <th>Name Of Employee </br> (Designation)</th>
+              <th>Month/2025</th>
+              <th>Basic Salary</th>
+              <th>EPF@12%</th>
+              <th>ESIC@0.75%</th>
+              <th>EPF@13%</th>
+              <th>ESIC@3.25%</th>
+              <th>Total </br> Deduction</th>
+              <th>Net Salary </br> Payable</th>
+              <th>Total Approved </br> Salary</th>
+              <th>Account Number </br> ( IFSC Code )</th>
+              <th>Remarks</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        
+        <div class="row mt-8 text-center">
+          <div class="col-4 sig_2 fw-bold"></div>
+          <div class="col-4 sig_3 fw-bold"></div>
+          <div class="col-4 sig_1 fw-bold"></div>
         </div>
 
+
+
+      </div>
       </div>
 
       <!-- Add / Edit Modal -->
@@ -221,16 +240,32 @@
 
 
               <!-- Rounding Setting -->
-              <div class="form-check form-switch form-check-md d-flex justify-content-between p-2 border bg-warning mb-2">
-                  <label class="form-check-label ps-0 pe-4 text-black" for="round_enable">Enable Round Amount</label>
-                  <input class="form-check-input flex-shrink-0" type="checkbox" id="round_enable" checked>
-                </div>
+              <div
+                class="form-check form-switch form-check-md d-flex justify-content-between p-2 border bg-warning mb-2">
+                <label class="form-check-label ps-0 pe-4 text-black" for="round_enable">Enable Round Amount</label>
+                <input class="form-check-input flex-shrink-0" type="checkbox" id="round_enable" checked>
+              </div>
 
               <!-- Rounding Setting -->
-              <div class="form-check form-switch form-check-md d-flex justify-content-between p-2 border bg-warning mb-2">
-                  <label class="form-check-label ps-0 pe-4 text-black" for="calculation_enable">Hide Calculation</label>
-                  <input class="form-check-input flex-shrink-0" type="checkbox" id="calculation_enable" checked>
-                </div>
+              <div
+                class="form-check form-switch form-check-md d-flex justify-content-between p-2 border bg-warning mb-2">
+                <label class="form-check-label ps-0 pe-4 text-black" for="calculation_enable">Hide Calculation</label>
+                <input class="form-check-input flex-shrink-0" type="checkbox" id="calculation_enable" checked>
+              </div>
+
+
+              <!-- signature Change -->
+              <div class="border bg-warning p-2 rounded-2">
+                <span class="text-dark">Verified Officers Name (use * for next line)</span>
+                <input type="text" id="signature" style="display: none;" data-role="tagsinput" />
+              </div>
+
+
+
+
+
+
+
 
 
             </div>
@@ -254,6 +289,8 @@
 
       <script src="./node_modules/choices/js/choices.min.js"></script>
 
+      <script src="./node_modules/tagsinput/tagsinput.js"></script>
+
       <script src="./functions.js"></script>
 
       <script>
@@ -267,7 +304,8 @@
             calculation_enable: false,
             esic_limit: 21000,
             month_days: 30,
-            title: "Salary Table Sheet Creator"
+            title: "Salary Table Sheet Creator",
+            signature: ""
           };
 
           if (localStorage.getItem("settings")) {
@@ -287,11 +325,11 @@
 
           // Format amount function with ROUND setting applied
           function formatAmt(amount) {
-            if (!amount || amount === 0) return "₹0.00";
+            if (!amount || amount === 0) amount = 0;
 
             if (settings.round) amount = Math.round(amount);
 
-            if (settings.calculation_enable === true) {$("body").addClass("calcu-enable");} else {$("body").removeClass("calcu-enable");}
+            if (settings.calculation_enable === true) { $("body").addClass("calcu-enable"); } else { $("body").removeClass("calcu-enable"); }
 
             return "₹" + amount.toLocaleString('en-IN', {
               minimumFractionDigits: settings.round ? 0 : 2,
@@ -299,6 +337,22 @@
             });
           }
 
+          function saveEmployees() {
+            localStorage.setItem("employees", JSON.stringify(employees));
+          }
+
+          function renderSignatures() {
+            let tags = $('#signature').tagsinput('items');
+            // Clear previews
+            $('.sig_1, .sig_2, .sig_3').html('');
+            
+            tags.forEach((txt, i) => {
+              if (i > 2) return;
+              // Replace * with <br>
+              let html = txt.replace(/\*/g, '<br>');
+              $('.sig_' + (i + 1)).html(html);
+            });
+          }
 
 
           /*---------------------------------------------------------
@@ -314,9 +368,16 @@
 
           ];
 
+          if (localStorage.getItem("employees")) {
+            try {
+              employees = JSON.parse(localStorage.getItem("employees"));
+            } catch (e) {
+              employees = [];
+            }
+          }
+
           const $empTable = $("#empTable tbody");
           const empModal = new bootstrap.Modal(document.getElementById('empModal'));
-
 
 
           /*---------------------------------------------------------
@@ -338,17 +399,36 @@
             employees.forEach(emp => {
 
               let salary = parseFloat(emp.salary) || 0;
+              let absent = parseFloat(emp.absent) || 0;
 
-              let months = getDurationText(emp.date_from, emp.date_to, 'month');
-              let days = getDurationText(emp.date_from, emp.date_to, 'day');
+              let duration = getDuration(emp.date_from, emp.date_to);
+              if (!duration) return;
 
+              let perDaySalary = salary / settings.month_days;
+
+              /* ================= SALARY ================= */
               let salary_amt =
-                (salary * months) +
-                (salary / settings.month_days * days);
+                (salary * duration.months) +
+                (perDaySalary * duration.days) -
+                (perDaySalary * absent);
 
+              salary_amt = Math.max(0, salary_amt);
+
+              /* ================= EPF ================= */
               let epf_emp = emp.deduction_on == "1" ? salary * 0.12 : 0;
               let epf_org = emp.deduction_on == "1" ? salary * 0.13 : 0;
 
+              let epf_emp_amt =
+                (epf_emp * duration.months) +
+                (epf_emp / settings.month_days * duration.days) -
+                (epf_emp / settings.month_days * absent);
+
+              let epf_org_amt =
+                (epf_org * duration.months) +
+                (epf_org / settings.month_days * duration.days) -
+                (epf_org / settings.month_days * absent);
+
+              /* ================= ESIC ================= */
               let esicEligible =
                 emp.deduction_on == "1" &&
                 salary <= settings.esic_limit;
@@ -356,22 +436,17 @@
               let esic_emp = esicEligible ? salary * 0.0075 : 0;
               let esic_org = esicEligible ? salary * 0.0325 : 0;
 
-              let epf_emp_amt =
-                (epf_emp * months) +
-                (epf_emp / settings.month_days * days);
-
               let esic_emp_amt =
-                (esic_emp * months) +
-                (esic_emp / settings.month_days * days);
-
-              let epf_org_amt =
-                (epf_org * months) +
-                (epf_org / settings.month_days * days);
+                (esic_emp * duration.months) +
+                (esic_emp / settings.month_days * duration.days) -
+                (esic_emp / settings.month_days * absent);
 
               let esic_org_amt =
-                (esic_org * months) +
-                (esic_org / settings.month_days * days);
+                (esic_org * duration.months) +
+                (esic_org / settings.month_days * duration.days) -
+                (esic_org / settings.month_days * absent);
 
+              /* ================= TOTALS ================= */
               let deduction_amt = epf_emp_amt + esic_emp_amt;
               let net_amt = salary_amt - deduction_amt;
               let approved_amt = salary_amt + epf_org_amt + esic_org_amt;
@@ -384,12 +459,11 @@
               totals.deduction += deduction_amt;
               totals.net += net_amt;
               totals.approved += approved_amt;
+
             });
 
             return totals;
           }
-
-
 
 
           function parseDMY(dateStr) {
@@ -404,7 +478,6 @@
 
             return new Date(parseInt(y), monthMap[m], parseInt(d));
           }
-
 
 
           /*---------------------------------------------------------
@@ -438,11 +511,17 @@
           }
 
 
-
           /*---------------------------------------------------------
             Duration Display
           ----------------------------------------------------------*/
-          function getDurationText(from, to, type = null) {
+          function getDuration(from, to) {
+
+            let t_due = {
+              months: 0,
+              days: 0
+            };
+
+
             if (!from || !to) return "";
 
             let start = parseDMY(from);
@@ -474,23 +553,14 @@
               months += 1;
               days = 0;
             }
+            t_due.months = months;
+            t_due.days = days;
 
-            if (type === "month") return months;
-            if (type === "day") return days;
+            return t_due;
 
-            return days === 0
-              ? `${months} Month(s)`
-              : `${months} Month(s) & ${days} Day(s)`;
+
+            //  return days === 0 ? `${months} Month(s)` : `${months} Month(s) & ${days} Day(s)`;
           }
-
-
-
-
-
-
-
-
-
 
           /*---------------------------------------------------------
             Check Empty Column
@@ -514,12 +584,6 @@
             return empty;
           }
 
-          
-
-
-
-
-
           /*---------------------------------------------------------
             Render Table
           ----------------------------------------------------------*/
@@ -533,15 +597,15 @@
 
               let salary = parseFloat(emp.salary) || 0;
 
-              let months = getDurationText(emp.date_from, emp.date_to, 'month');
-              let days = getDurationText(emp.date_from, emp.date_to, 'day');
+              let duration = getDuration(emp.date_from, emp.date_to);
+
 
               // Default absent to 0 if empty
               if (!emp.absent) emp.absent = 0;
 
               // Calculate salary considering absent days
               let perDaySalary = salary / settings.month_days;
-              let salary_amt = (salary * months) + (perDaySalary * days) - (perDaySalary * emp.absent);
+              let salary_amt = (salary * duration.months) + (perDaySalary * duration.days) - (perDaySalary * emp.absent);
 
 
               let epf_emp = emp.deduction_on == "1" ? salary * 0.12 : 0;
@@ -554,26 +618,25 @@
               let esic_emp = esicEligible ? salary * 0.0075 : 0;
               let esic_org = esicEligible ? salary * 0.0325 : 0;
 
-              let epf_emp_amt = (epf_emp * months) + (epf_emp / settings.month_days * days) - (epf_emp / settings.month_days * emp.absent);
+              let epf_emp_amt = (epf_emp * duration.months) + (epf_emp / settings.month_days * duration.days) - (epf_emp / settings.month_days * emp.absent);
 
-              let esic_emp_amt = (esic_emp * months) + (esic_emp / settings.month_days * days) - (esic_emp / settings.month_days * emp.absent);
+              let esic_emp_amt = (esic_emp * duration.months) + (esic_emp / settings.month_days * duration.days) - (esic_emp / settings.month_days * emp.absent);
 
-              let epf_org_amt = (epf_org * months) + (epf_org / settings.month_days * days) - (epf_org / settings.month_days * emp.absent);
+              let epf_org_amt = (epf_org * duration.months) + (epf_org / settings.month_days * duration.days) - (epf_org / settings.month_days * emp.absent);
 
-              let esic_org_amt = (esic_org * months) + (esic_org / settings.month_days * days) - (esic_org / settings.month_days * emp.absent);
+              let esic_org_amt = (esic_org * duration.months) + (esic_org / settings.month_days * duration.days) - (esic_org / settings.month_days * emp.absent);
 
 
               let deduction_amt = epf_emp_amt + esic_emp_amt;
               let net_amt = salary_amt - deduction_amt;
               let approved_amt = salary_amt + epf_org_amt + esic_org_amt;
 
-              let durationText = getDurationText(emp.date_from, emp.date_to);
 
               let row = $(`
             <tr>
                 <td>${index + 1}</td>
                 <td class="emp-name-cell position-relative">
-                   ${val(emp.name).toUpperCase()}<br><small>(${val(emp.designation)})</small>
+                 <span class="fw-bold">  ${val(emp.name).toUpperCase()} </span><br><small>(${val(emp.designation)})</small>
                    <div class="row-actions">
                     <button class="btn btn-sm btn-warning edit-btn" data-index="${index}">Edit</button>
                     <button class="btn btn-sm btn-danger delete-btn" data-index="${index}">Delete</button>
@@ -583,20 +646,21 @@
                 <td>${formatMonthColumn(emp.date_from, emp.date_to)}</td>
 
                 <td>
-                  <span class="calcu">
-                    ${formatAmt((salary * months) + (salary / settings.month_days * days))}
-                   x [${durationText}]
-                    ${emp.absent > 0 ? `− ${formatAmt((salary / settings.month_days) * emp.absent)} [${emp.absent} days Absent]` : `` }
-                    <br>= </span> ${formatAmt(salary_amt)}
+                  <small class="calcu">
+                    ${formatAmt(salary)} x 
+                    [ ${duration.months > 0 ? duration.months + ' Month' + (duration.months > 1 ? 's' : '') : ''}
+                     ${duration.months > 0 && duration.days > 0 ? ' ' : ''} ${duration.days > 0 ? duration.days + ' Day' + (duration.days > 1 ? 's' : '') : ''}] ${emp.absent > 0 ? `</br> − ${formatAmt((salary / settings.month_days) * emp.absent)} [${emp.absent} Day${emp.absent > 1 ? 's' : ''} Absent]` : ``} <br> = </small> 
+                 <span class="fs_amt"> ${formatAmt(salary_amt)}</span>
                 </td>
 
-                <td>${formatAmt(epf_emp_amt)}</td>
-                <td>${formatAmt(esic_emp_amt)}</td>
-                <td>${formatAmt(epf_org_amt)}</td>
-                <td>${formatAmt(esic_org_amt)}</td>
-                <td>${formatAmt(deduction_amt)}</td>
-                <td>${formatAmt(net_amt)}</td>
-                <td>${formatAmt(approved_amt)}</td>
+
+                <td><span class="fs_amt">${formatAmt(epf_emp_amt)}</span></td>
+                <td><span class="fs_amt">${formatAmt(esic_emp_amt)}</span></td>
+                <td><span class="fs_amt">${formatAmt(epf_org_amt)}</span></td>
+                <td><span class="fs_amt">${formatAmt(esic_org_amt)}</span></td>
+                <td><span class="fs_amt">${formatAmt(deduction_amt)}</span></td>
+                <td><span class="fs_amt">${formatAmt(net_amt)}</span></td>
+                <td><span class="fs_amt">${formatAmt(approved_amt)}</span></td>
 
                 <td>${valPair(emp.account, emp.ifsc)}</td>
                 <td>${val(emp.remarks)}</td>
@@ -609,7 +673,7 @@
 
             /* ================= TOTAL ROW (PERFECT ALIGNMENT) ================= */
             let t = calculateTotals();
-            let totalRow = $("<tr style='background:#f2f2f2;font-weight:bold;'></tr>");
+            let totalRow = $("<tr style='background:#f2f2f2;font-weight:bold;font-size: 22px;'></tr>");
 
             $("#empTable thead th").each(function (i) {
 
@@ -617,7 +681,7 @@
 
               switch (i) {
                 case 0: cell = ""; break;
-                case 1: cell = "TOTAL"; break;
+                case 1: cell = "--TOTAL--"; break;
                 case 2: cell = ""; break;
 
                 case 3: cell = formatAmt(t.salary); break;
@@ -651,10 +715,6 @@
             });
           }
 
-
-
-
-
           /*---------------------------------------------------------
             Add / Edit / Delete Employee
           ----------------------------------------------------------*/
@@ -668,6 +728,7 @@
             e.preventDefault();
 
             let idx = $("#editIndex").val();
+
             let data = {
               name: val($("#name").val()),
               designation: val($("#designation").val()),
@@ -681,12 +742,17 @@
               remarks: val($("#remarks").val())
             };
 
-            if (idx === "") employees.push(data);
-            else employees[idx] = data;
+            if (idx === "") {
+              employees.push(data);
+            } else {
+              employees[idx] = data;
+            }
 
+            saveEmployees();   // ✅ SAVE HERE
             empModal.hide();
             renderTable();
           });
+
 
           $empTable.on("click", ".edit-btn", function () {
             let i = $(this).data("index");
@@ -711,10 +777,10 @@
             let idx = $(this).data("index");
             if (confirm("Are you sure?")) {
               employees.splice(idx, 1);
+              saveEmployees();   // ✅ SAVE HERE
               renderTable();
             }
           });
-
 
 
           /*---------------------------------------------------------
@@ -726,7 +792,25 @@
           $("#esic_limit").val(settings.esic_limit);
           $("#month_days").val(settings.month_days);
 
+
+          // After reading settings from localStorage
+          let sig = settings.signature || "";
+          $('#signature').tagsinput('removeAll'); // Clear any existing tags
+          sig.split(',').forEach(tag => {
+            if (tag.trim()) $('#signature').tagsinput('add', tag.trim());
+          });
+
+          // 🔁 Update signature preview on change
+          $('#signature').on('itemAdded itemRemoved', function () {
+            renderSignatures();
+          });
+          
+          // Initial preview load
+          renderSignatures();
+
           $("#saveSettings").click(function () {
+            let sig = $('#signature').tagsinput('items').join(',');
+            settings.signature = sig;
 
             settings.title = $("#site_title").val().trim() || "Salary Table Sheet Creator";
             settings.round = $("#round_enable").prop("checked");
@@ -740,12 +824,11 @@
 
             $("#settingsModal").modal("hide");
 
-            if (settings.calculation_enable === true) {$("body").addClass("calcu-enable");} else {$("body").removeClass("calcu-enable");}
+            if (settings.calculation_enable === true) { $("body").addClass("calcu-enable"); } else { $("body").removeClass("calcu-enable"); }
 
 
             renderTable();
           });
-
 
 
           /*---------------------------------------------------------
@@ -755,6 +838,10 @@
 
         });
       </script>
+
+    </div>
+
+    </div>
 
   </main>
 </body>
