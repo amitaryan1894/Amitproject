@@ -166,6 +166,23 @@ h4{color:#e83e8c}
 
 <script>
 let timer;
+const synth = window.speechSynthesis;
+let voices = [];
+
+function loadVoices(){ voices = synth.getVoices(); }
+synth.onvoiceschanged = loadVoices;
+
+function speak(text){
+  if(!synth) return;
+  synth.cancel();
+  let utter = new SpeechSynthesisUtterance(text);
+  utter.lang = 'hi-IN';
+  utter.rate = 0.9;
+  utter.pitch = 1;
+  utter.voice = voices.find(v=>v.lang==='hi-IN') || voices[0];
+  synth.speak(utter);
+}
+
 function autoBar(){
   let w=0;
   clearInterval(timer);
@@ -174,6 +191,7 @@ function autoBar(){
 }
 
 $('#root').on('click',()=>{
+  speak('मिशन शक्ति योजना, अररिया जिला। महिला सुरक्षा, सम्मान और आत्मनिर्भरता की दिशा में एक सशक्त पहल।');
   $('#root,#rootText').hide();
   $('#tree').fadeIn();
   autoBar();
@@ -181,12 +199,24 @@ $('#root').on('click',()=>{
 
 $('.branch').on('click',function(){
   let id=$(this).data('id');
+  let textMap={
+    osc:'वन स्टॉप सेंटर। पीड़ित महिलाओं को एक ही स्थान पर सभी आवश्यक सहायता।',
+    legal:'कानूनी सहायता। महिलाओं को निःशुल्क कानूनी परामर्श।',
+    health:'स्वास्थ्य सहयोग। आपात चिकित्सा सहायता।',
+    helpline:'महिला हेल्पलाइन 181। चौबीस घंटे त्वरित सहायता।',
+    dhew:'जिला हब, महिला सशक्तिकरण। योजनाओं और रोजगार से जुड़ाव।',
+    palna:'पालना घर। कार्यरत महिलाओं के बच्चों के लिए सुरक्षित डे केयर।',
+    skill:'कौशल विकास। आत्मनिर्भरता के लिए प्रशिक्षण।',
+    aware:'जागरूकता अभियान। महिला अधिकारों पर निरंतर जागरूकता।'
+  };
+  speak(textMap[id]);
   $('#tree').hide();
   $('.details').hide();
   $('#'+id).fadeIn();
 });
 
 $('.back').on('click',function(){
+  synth.cancel();
   $('.details').hide();
   $('#tree').fadeIn();
 });
