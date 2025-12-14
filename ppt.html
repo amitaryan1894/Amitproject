@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>मिशन शक्ति योजना – अररिया | Government Presentation</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<style>
+body{
+  margin:0;
+  background:radial-gradient(circle at top,#fff5f8,#f3f6ff);
+  font-family:'Segoe UI',sans-serif;
+  overflow:hidden;
+}
+
+.tree-container{
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+  text-align:center;
+}
+
+/* TREE ROOT */
+.root{
+  width:220px;
+  height:220px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#ff4081,#ff9800);
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 30px 70px rgba(0,0,0,.3);
+  animation:float 4s ease-in-out infinite;
+  cursor:pointer;
+}
+
+@keyframes float{
+  0%{transform:translateY(0)}
+  50%{transform:translateY(-15px)}
+  100%{transform:translateY(0)}
+}
+
+/* TREE BRANCH AREA */
+.tree{
+  display:none;
+  position:relative;
+  width:100%;
+  max-width:1100px;
+  height:520px;
+}
+
+.branch{
+  position:absolute;
+  width:260px;
+  padding:14px;
+  background:linear-gradient(135deg,#1f9d6e,#198754);
+  color:#fff;
+  border-radius:16px;
+  box-shadow:0 15px 30px rgba(0,0,0,.2);
+  cursor:pointer;
+  animation:grow 0.8s ease forwards;
+}
+
+@keyframes grow{
+  from{opacity:0; transform:scale(.6)}
+  to{opacity:1; transform:scale(1)}
+}
+
+/* LEFT BRANCHES */
+.left1{left:40px; top:40px}
+.left2{left:40px; top:140px}
+.left3{left:40px; top:240px}
+.left4{left:40px; top:340px}
+
+/* RIGHT BRANCHES */
+.right1{right:40px; top:40px}
+.right2{right:40px; top:140px}
+.right3{right:40px; top:240px}
+.right4{right:40px; top:340px}
+
+/* DETAILS SLIDE */
+.details{
+  display:none;
+  max-width:800px;
+  background:#fff;
+  padding:35px;
+  border-radius:22px;
+  box-shadow:0 40px 80px rgba(0,0,0,.3);
+  animation:focus 0.6s ease forwards;
+  text-align:left;
+}
+
+@keyframes focus{
+  from{opacity:0; transform:scale(.85)}
+  to{opacity:1; transform:scale(1)}
+}
+
+h4{color:#e83e8c}
+
+.back{margin-top:20px}
+
+/* WATERMARK */
+.watermark{
+  position:fixed;
+  bottom:10px;
+  left:15px;
+  font-size:12px;
+  opacity:.4;
+}
+
+/* AUTO SLIDE BAR */
+.progress{
+  position:fixed;
+  top:0;left:0;
+  width:0;height:4px;
+  background:#ff4081;
+}
+</style>
+</head>
+<body>
+
+<div class="progress" id="bar"></div>
+<div class="watermark">Mission Shakti | Araria District</div>
+
+<div class="tree-container">
+
+<!-- ROOT SLIDE -->
+<div class="root" id="root">
+  <div>
+    <h4>मिशन शक्ति</h4>
+    <small>अररिया जिला</small>
+  </div>
+</div>
+<p id="rootText" class="mt-3"><b>महिला सुरक्षा • सम्मान • आत्मनिर्भरता</b></p>
+
+<!-- TREE -->
+<div class="tree" id="tree">
+  <div class="branch left1" data-id="osc">वन स्टॉप सेंटर</div>
+  <div class="branch left2" data-id="legal">कानूनी सहायता</div>
+  <div class="branch left3" data-id="health">स्वास्थ्य सहयोग</div>
+  <div class="branch left4" data-id="helpline">हेल्पलाइन 181</div>
+
+  <div class="branch right1" data-id="dhew">जिला हब (DHEW)</div>
+  <div class="branch right2" data-id="palna">पालना घर</div>
+  <div class="branch right3" data-id="skill">कौशल विकास</div>
+  <div class="branch right4" data-id="aware">जागरूकता अभियान</div>
+</div>
+
+<!-- DETAILS -->
+<div class="details" id="osc"><h4>वन स्टॉप सेंटर</h4><p>पीड़ित महिलाओं को पुलिस, कानूनी, चिकित्सा एवं परामर्श सेवा एक ही स्थान पर।</p><button class="btn btn-outline-secondary back">◀ वापस</button></div>
+<div class="details" id="legal"><h4>कानूनी सहायता</h4><p>घरेलू हिंसा, दहेज एवं उत्पीड़न मामलों में निःशुल्क सलाह।</p><button class="btn btn-outline-secondary back">◀ वापस</button></div>
+<div class="details" id="health"><h4>स्वास्थ्य सहयोग</h4><p>आपात चिकित्सा सहायता एवं रेफरल सुविधा।</p><button class="btn btn-outline-secondary back">◀ वापस</button></div>
+<div class="details" id="helpline"><h4>महिला हेल्पलाइन 181</h4><p>24×7 त्वरित सहायता सेवा।</p><button class="btn btn-outline-secondary back">◀ वापस</button></div>
+<div class="details" id="dhew"><h4>जिला हब (DHEW)</h4><p>महिलाओं को योजनाओं, रोजगार एवं अधिकारों से जोड़ना।</p><button class="btn btn-outline-secondary back">◀ वापस</button></div>
+<div class="details" id="palna"><h4>पालना घर</h4><p>कार्यरत महिलाओं के बच्चों हेतु सुरक्षित डे-केयर।</p><button class="btn btn-outline-secondary back">◀ वापस</button></div>
+<div class="details" id="skill"><h4>कौशल विकास</h4><p>प्रशिक्षण द्वारा महिलाओं को आत्मनिर्भर बनाना।</p><button class="btn btn-outline-secondary back">◀ वापस</button></div>
+<div class="details" id="aware"><h4>जागरूकता अभियान</h4><p>महिला अधिकारों व योजनाओं पर निरंतर जागरूकता।</p><button class="btn btn-outline-secondary back">◀ वापस</button></div>
+
+</div>
+
+<script>
+let timer;
+function autoBar(){
+  let w=0;
+  clearInterval(timer);
+  $('#bar').css('width','0');
+  timer=setInterval(()=>{w+=1;$('#bar').css('width',w+'%'); if(w>=100) clearInterval(timer)},80);
+}
+
+$('#root').on('click',()=>{
+  $('#root,#rootText').hide();
+  $('#tree').fadeIn();
+  autoBar();
+});
+
+$('.branch').on('click',function(){
+  let id=$(this).data('id');
+  $('#tree').hide();
+  $('.details').hide();
+  $('#'+id).fadeIn();
+});
+
+$('.back').on('click',function(){
+  $('.details').hide();
+  $('#tree').fadeIn();
+});
+
+$(document).on('keydown',e=>{
+  if(e.key==='Escape') $('.back:visible').click();
+});
+</script>
+
+</body>
+</html>
