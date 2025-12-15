@@ -638,20 +638,16 @@
               let epf_emp = emp.deduction_on == "1" ? salary * 0.12 : 0;
               let epf_org = emp.deduction_on == "1" ? salary * 0.13 : 0;
 
-              let esicEligible =
-                emp.deduction_on == "1" &&
-                salary <= settings.esic_limit;
+              let esicEligible = emp.deduction_on == "1" && salary <= settings.esic_limit;
 
               let esic_emp = esicEligible ? salary * 0.0075 : 0;
               let esic_org = esicEligible ? salary * 0.0325 : 0;
 
-              let epf_emp_amt = (epf_emp * duration.months) + (epf_emp / settings.month_days * duration.days) - (epf_emp / settings.month_days * emp.absent);
+              let epf_emp_amt = (salary_amt * 0.12);
+              let epf_org_amt = (salary_amt * 0.13);
 
-              let esic_emp_amt = (esic_emp * duration.months) + (esic_emp / settings.month_days * duration.days) - (esic_emp / settings.month_days * emp.absent);
-
-              let epf_org_amt = (epf_org * duration.months) + (epf_org / settings.month_days * duration.days) - (epf_org / settings.month_days * emp.absent);
-
-              let esic_org_amt = (esic_org * duration.months) + (esic_org / settings.month_days * duration.days) - (esic_org / settings.month_days * emp.absent);
+              let esic_emp_amt = esicEligible ? (salary_amt * 0.0075): 0;
+              let esic_org_amt = esicEligible ? (salary_amt * 0.0325): 0;
 
 
               let deduction_amt = epf_emp_amt + esic_emp_amt;
@@ -887,6 +883,7 @@
 </body>
 
 </html>
+
 
 
 
