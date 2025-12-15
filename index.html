@@ -634,11 +634,11 @@
               let perDaySalary = salary / settings.month_days;
               let salary_amt = (salary * duration.months) + (perDaySalary * duration.days) - (perDaySalary * emp.absent);
 
+              let esicEligible = emp.deduction_on == "1" && salary <= settings.esic_limit;
+
 
               let epf_emp = emp.deduction_on == "1" ? salary * 0.12 : 0;
               let epf_org = emp.deduction_on == "1" ? salary * 0.13 : 0;
-
-              let esicEligible = emp.deduction_on == "1" && salary <= settings.esic_limit;
 
               let esic_emp = esicEligible ? salary * 0.0075 : 0;
               let esic_org = esicEligible ? salary * 0.0325 : 0;
@@ -883,6 +883,7 @@
 </body>
 
 </html>
+
 
 
 
