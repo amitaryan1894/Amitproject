@@ -343,7 +343,7 @@
           function valPair(a, b) { return (!a && !b) ? "" : `${val(a)} </br>( ${val(b)} )`; }
 
           // Format amount function with ROUND setting applied
-          function formatAmt(amount) {
+          function formatAmt(amount, up_down = null) {
             if (!amount || amount === 0) amount = 0;
 
             if (settings.round) amount = Math.round(amount);
@@ -883,6 +883,7 @@
 </body>
 
 </html>
+
 
 
 
