@@ -310,559 +310,173 @@
       <script src="./functions.js"></script>
 
       <script>
-        $(document).ready(function () {
+$(document).ready(function () {
+
+  /* ================= DEFAULT SETTINGS ================= */
+  let settings = {
+    round: false,
+    calculation_enable: false,
+    esic_limit: 21000,
+    month_days: 30,
+    title: "Salary Table Sheet Creator",
+    signature: ""
+  };
+
+  if (localStorage.getItem("settings")) {
+    settings = JSON.parse(localStorage.getItem("settings"));
+  }
+
+  $("h2.text-center").html(settings.title || "");
+
+  /* ================= UTILITY ================= */
+  function val(x) { return x ? String(x) : ""; }
+
+  function formatAmt(amount) {
+    amount = amount || 0;
+    if (settings.round) amount = Math.round(amount);
+    return "₹" + amount.toLocaleString("en-IN", {
+      minimumFractionDigits: settings.round ? 0 : 2,
+      maximumFractionDigits: settings.round ? 0 : 2
+    });
+  }
+
+  function parseDMY(d) {
+    if (!d) return null;
+    let [dd, mm, yy] = d.split("-");
+    let m = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+    return new Date(yy, m[mm], dd);
+  }
+
+  function getDuration(from, to) {
+    if (!from || !to) return null;
+    let s = parseDMY(from), e = parseDMY(to);
+    if (!s || !e || e < s) return null;
+
+    let months = (e.getFullYear() - s.getFullYear()) * 12 + (e.getMonth() - s.getMonth());
+    let days = e.getDate() - s.getDate() + 1;
+
+    if (days <= 0) {
+      months--;
+      days += new Date(e.getFullYear(), e.getMonth(), 0).getDate();
+    }
+
+    if (s.getDate() === 1 && e.getDate() === new Date(e.getFullYear(), e.getMonth()+1,0).getDate()) {
+      months++; days = 0;
+    }
+    return {months, days};
+  }
+
+  /* ================= EMPLOYEES ================= */
+  let employees = JSON.parse(localStorage.getItem("employees")) || [];
+
+  const $empTable = $("#empTable tbody");
+
+  /* ================= TOTAL FOOTER ================= */
+  function calculateTotals() {
+    let t = {salary:0,e_epf:0,e_esic:0,g_epf:0,g_esic:0,deduction:0,net:0,approved:0};
+
+    employees.forEach(emp => {
+      let salary = +emp.salary || 0;
+      let absent = +emp.absent || 0;
+      let dur = getDuration(emp.date_from, emp.date_to);
+      if (!dur) return;
+
+      let perDay = salary / settings.month_days;
+      let salary_amt = (salary * dur.months) + (perDay * dur.days) - (perDay * absent);
+      salary_amt = Math.max(0, salary_amt);
+
+      let epf_emp = emp.deduction_on == "1" ? salary_amt * 0.12 : 0;
+      let epf_org = emp.deduction_on == "1" ? salary_amt * 0.13 : 0;
+
+      let esicEligible = emp.deduction_on == "1" && salary <= settings.esic_limit;
+      let esic_emp = esicEligible ? salary_amt * 0.0075 : 0;
+      let esic_org = esicEligible ? salary_amt * 0.0325 : 0;
+
+      let deduction = epf_emp + esic_emp;
+      let net = salary_amt - deduction;
+      let approved = salary_amt + epf_org + esic_org;
+
+      t.salary += salary_amt;
+      t.e_epf += epf_emp;
+      t.e_esic += esic_emp;
+      t.g_epf += epf_org;
+      t.g_esic += esic_org;
+      t.deduction += deduction;
+      t.net += net;
+      t.approved += approved;
+    });
+    return t;
+  }
+
+  /* ================= RENDER TABLE ================= */
+  function renderTable() {
+    $empTable.empty();
+    if (!employees.length) return;
+
+    employees.forEach((emp, i) => {
+
+      let salary = +emp.salary || 0;
+      let absent = +emp.absent || 0;
+      let dur = getDuration(emp.date_from, emp.date_to);
+      if (!dur) return;
+
+      let perDay = salary / settings.month_days;
+      let salary_amt = (salary * dur.months) + (perDay * dur.days) - (perDay * absent);
+      salary_amt = Math.max(0, salary_amt);
+
+      /* ✅ FIXED LOGIC */
+      let epf_emp_amt = emp.deduction_on == "1" ? salary_amt * 0.12 : 0;
+      let epf_org_amt = emp.deduction_on == "1" ? salary_amt * 0.13 : 0;
+
+      let esicEligible = emp.deduction_on == "1" && salary <= settings.esic_limit;
+      let esic_emp_amt = esicEligible ? salary_amt * 0.0075 : 0;
+      let esic_org_amt = esicEligible ? salary_amt * 0.0325 : 0;
+
+      let deduction_amt = epf_emp_amt + esic_emp_amt;
+      let net_amt = salary_amt - deduction_amt;
+      let approved_amt = salary_amt + epf_org_amt + esic_org_amt;
+
+      $empTable.append(`
+        <tr>
+          <td>${i+1}</td>
+          <td><b>${val(emp.name)}</b><br><small>${val(emp.designation)}</small></td>
+          <td>${emp.date_from} - ${emp.date_to}</td>
+          <td>${formatAmt(salary_amt)}</td>
+          <td>${formatAmt(epf_emp_amt)}</td>
+          <td>${formatAmt(esic_emp_amt)}</td>
+          <td>${formatAmt(epf_org_amt)}</td>
+          <td>${formatAmt(esic_org_amt)}</td>
+          <td>${formatAmt(deduction_amt)}</td>
+          <td>${formatAmt(net_amt)}</td>
+          <td>${formatAmt(approved_amt)}</td>
+          <td>${val(emp.account)}<br>${val(emp.ifsc)}</td>
+          <td>${val(emp.remarks)}</td>
+        </tr>
+      `);
+    });
+
+    /* ===== TOTAL ROW ===== */
+    let t = calculateTotals();
+    $empTable.append(`
+      <tr style="font-weight:bold;background:#f2f2f2">
+        <td></td><td>TOTAL</td><td></td>
+        <td>${formatAmt(t.salary)}</td>
+        <td>${formatAmt(t.e_epf)}</td>
+        <td>${formatAmt(t.e_esic)}</td>
+        <td>${formatAmt(t.g_epf)}</td>
+        <td>${formatAmt(t.g_esic)}</td>
+        <td>${formatAmt(t.deduction)}</td>
+        <td>${formatAmt(t.net)}</td>
+        <td>${formatAmt(t.approved)}</td>
+        <td></td><td></td>
+      </tr>
+    `);
+  }
+
+  renderTable();
+});
+</script>
 
-          /*---------------------------------------------------------
-            DEFAULT SETTINGS  (saved in localStorage)
-          ----------------------------------------------------------*/
-          let settings = {
-            round: false,
-            calculation_enable: false,
-            esic_limit: 21000,
-            month_days: 30,
-            title: "Salary Table Sheet Creator",
-            signature: ""
-          };
-
-          if (localStorage.getItem("settings")) {
-            settings = JSON.parse(localStorage.getItem("settings"));
-          }
-
-          // Apply Title
-          $("h2.text-center").html(val(settings.title));
-
-
-
-          /*---------------------------------------------------------
-            Utility Functions
-          ----------------------------------------------------------*/
-          function val(x) {
-            if (!x) return "";
-            return String(x).replace(/\*/g, "</br>");
-          }
-          function valPair(a, b) { return (!a && !b) ? "" : `${val(a)} </br>( ${val(b)} )`; }
-
-          // Format amount function with ROUND setting applied
-          function formatAmt(amount, up_down = null) {
-            if (!amount || amount === 0) amount = 0;
-
-            if (settings.round) amount = Math.round(amount);
-
-            if (settings.calculation_enable === true) { $("body").addClass("calcu-enable"); } else { $("body").removeClass("calcu-enable"); }
-
-            return "₹" + amount.toLocaleString('en-IN', {
-              minimumFractionDigits: settings.round ? 0 : 2,
-              maximumFractionDigits: settings.round ? 0 : 2
-            });
-          }
-
-          function toggleRoundNote() {
-            if (settings.round === true) {
-              $(".round_note").removeClass("display-none");
-            } else {
-              $(".round_note").addClass("display-none");
-            }
-          }
-          toggleRoundNote();
-
-          function saveEmployees() {
-            localStorage.setItem("employees", JSON.stringify(employees));
-          }
-
-          function renderSignatures() {
-            let tags = $('#signature').tagsinput('items');
-            // Clear previews
-            $('.sig_1, .sig_2, .sig_3').html('');
-            
-            tags.forEach((txt, i) => {
-              if (i > 2) return;
-              // Replace * with <br>
-              $('.sig_' + (i + 1)).html(val(txt));
-            });
-          }
-
-
-          /*---------------------------------------------------------
-            Default Employees
-          ----------------------------------------------------------*/
-          let employees = [
-            { name: "Soheb Rumi", designation: "District Mission Co-Ordinator", salary: 40000, deduction_on: '1', date_from: "01-Jan-2025", date_to: "31-Jan-2025" },
-            { name: "Anuj Ranjan", designation: "Gender Specialist", salary: 23000, deduction_on: '1', date_from: "01-Jan-2025", date_to: "31-Jan-2025" },
-            { name: "Vikash Kumar", designation: "F.L.E", salary: 21000, deduction_on: '1', date_from: "01-Jan-2025", date_to: "31-Jan-2025" },
-            { name: "Amit Shrivastava", designation: "Account Assistant", salary: 16000, deduction_on: '1', date_from: "01-Jan-2025", date_to: "31-Jan-2025" },
-            { name: "Amit Kumar", designation: "Data Entry Operator", salary: 13500, deduction_on: '1', date_from: "01-Jan-2025", date_to: "31-Jan-2025" },
-            { name: "Aashish Kumar", designation: "Multi Tasking Staff", salary: 12000, deduction_on: '1', date_from: "01-Jan-2025", date_to: "31-Jan-2025" },
-
-          ];
-
-          if (localStorage.getItem("employees")) {
-            try {
-              employees = JSON.parse(localStorage.getItem("employees"));
-            } catch (e) {
-              employees = [];
-            }
-          }
-
-          const $empTable = $("#empTable tbody");
-          const empModal = new bootstrap.Modal(document.getElementById('empModal'));
-
-
-          /*---------------------------------------------------------
-            Calculate Total Row Values
-          ----------------------------------------------------------*/
-          function calculateTotals() {
-
-            let totals = {
-              salary: 0,
-              e_epf: 0,
-              e_esic: 0,
-              g_epf: 0,
-              g_esic: 0,
-              deduction: 0,
-              net: 0,
-              approved: 0
-            };
-
-            employees.forEach(emp => {
-
-              let salary = parseFloat(emp.salary) || 0;
-              let absent = parseFloat(emp.absent) || 0;
-
-              let duration = getDuration(emp.date_from, emp.date_to);
-              if (!duration) return;
-
-              let perDaySalary = salary / settings.month_days;
-
-              /* ================= SALARY ================= */
-              let salary_amt =
-                (salary * duration.months) +
-                (perDaySalary * duration.days) -
-                (perDaySalary * absent);
-
-              salary_amt = Math.max(0, salary_amt);
-
-              /* ================= EPF ================= */
-              let epf_emp = emp.deduction_on == "1" ? salary * 0.12 : 0;
-              let epf_org = emp.deduction_on == "1" ? salary * 0.13 : 0;
-
-              let epf_emp_amt =
-                (epf_emp * duration.months) +
-                (epf_emp / settings.month_days * duration.days) -
-                (epf_emp / settings.month_days * absent);
-
-              let epf_org_amt =
-                (epf_org * duration.months) +
-                (epf_org / settings.month_days * duration.days) -
-                (epf_org / settings.month_days * absent);
-
-              /* ================= ESIC ================= */
-              let esicEligible =
-                emp.deduction_on == "1" &&
-                salary <= settings.esic_limit;
-
-              let esic_emp = esicEligible ? salary * 0.0075 : 0;
-              let esic_org = esicEligible ? salary * 0.0325 : 0;
-
-              let esic_emp_amt =
-                (esic_emp * duration.months) +
-                (esic_emp / settings.month_days * duration.days) -
-                (esic_emp / settings.month_days * absent);
-
-              let esic_org_amt =
-                (esic_org * duration.months) +
-                (esic_org / settings.month_days * duration.days) -
-                (esic_org / settings.month_days * absent);
-
-              /* ================= TOTALS ================= */
-              let deduction_amt = epf_emp_amt + esic_emp_amt;
-              let net_amt = salary_amt - deduction_amt;
-              let approved_amt = salary_amt + epf_org_amt + esic_org_amt;
-
-              totals.salary += salary_amt;
-              totals.e_epf += epf_emp_amt;
-              totals.e_esic += esic_emp_amt;
-              totals.g_epf += epf_org_amt;
-              totals.g_esic += esic_org_amt;
-              totals.deduction += deduction_amt;
-              totals.net += net_amt;
-              totals.approved += approved_amt;
-
-            });
-
-            return totals;
-          }
-
-
-          function parseDMY(dateStr) {
-            if (!dateStr) return null;
-
-            let [d, m, y] = dateStr.split("-");
-
-            let monthMap = {
-              Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
-              Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11
-            };
-
-            return new Date(parseInt(y), monthMap[m], parseInt(d));
-          }
-
-
-          /*---------------------------------------------------------
-            Format Month Column
-          ----------------------------------------------------------*/
-          function formatMonthColumn(from, to) {
-            if (!from) return "";
-            let start = parseDMY(from);
-            let end = to ? parseDMY(to) : null;
-
-
-            const lastDay = d => new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
-            const MY = d => d.toLocaleString('default', { month: 'short', year: 'numeric' });
-            const DMY = d => `${String(d.getDate()).padStart(2, '0')}-${d.toLocaleString('default', { month: 'short' })}-${d.getFullYear()}`;
-
-            if (!end) {
-              if (start.getDate() === 1 || start.getDate() === lastDay(start)) return MY(start);
-              return DMY(start);
-            }
-
-            if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) {
-              if (start.getDate() === 1 && end.getDate() === lastDay(end)) return MY(start);
-              if (start.getDate() === 1) return `${MY(start)} - ${DMY(end)}`;
-              if (end.getDate() === lastDay(end)) return `${DMY(start)} - ${DMY(end)}`;
-              return `${DMY(start)} </br>to</br ${DMY(end)}`;
-            }
-
-            let s = start.getDate() === 1 ? MY(start) : DMY(start);
-            let e = end.getDate() === lastDay(end) ? MY(end) : DMY(end);
-            return `${s}</br>to</br>${e}`;
-          }
-
-
-          /*---------------------------------------------------------
-            Duration Display
-          ----------------------------------------------------------*/
-          function getDuration(from, to) {
-
-            let t_due = {
-              months: 0,
-              days: 0
-            };
-
-
-            if (!from || !to) return "";
-
-            let start = parseDMY(from);
-            let end = parseDMY(to);
-
-            if (!start || !end || end < start) return "";
-
-            let sY = start.getFullYear();
-            let sM = start.getMonth();
-            let sD = start.getDate();
-
-            let eY = end.getFullYear();
-            let eM = end.getMonth();
-            let eD = end.getDate();
-
-            let months = (eY - sY) * 12 + (eM - sM);
-            let days = eD - sD + 1;   // ✅ FIX HERE
-
-            if (days <= 0) {
-              months -= 1;
-              let prevMonthLastDay = new Date(eY, eM, 0).getDate();
-              days += prevMonthLastDay;
-            }
-
-            let startIsFirst = sD === 1;
-            let endIsLast = eD === new Date(eY, eM + 1, 0).getDate();
-
-            if (startIsFirst && endIsLast) {
-              months += 1;
-              days = 0;
-            }
-            t_due.months = months;
-            t_due.days = days;
-
-            return t_due;
-
-
-            //  return days === 0 ? `${months} Month(s)` : `${months} Month(s) & ${days} Day(s)`;
-          }
-
-          /*---------------------------------------------------------
-            Check Empty Column
-          ----------------------------------------------------------*/
-          function isColumnEmpty(colIndex) {
-            let empty = true;
-
-            $("#empTable tbody tr").each(function () {
-              let text = $(this).find("td").eq(colIndex).text().trim();
-
-              // Convert to number
-              let num = parseFloat(text.replace(/[^\d.-]/g, ''));
-
-              // Non-zero numbers = column NOT empty
-              if (!isNaN(num) && num > 0) empty = false;
-
-              // Text content also means NOT empty
-              if (isNaN(num) && text !== "") empty = false;
-            });
-
-            return empty;
-          }
-
-          /*---------------------------------------------------------
-            Render Table
-          ----------------------------------------------------------*/
-          function renderTable() {
-
-            $empTable.empty();
-            if (employees.length === 0) return;
-
-            /* ================= EMPLOYEE ROWS ================= */
-            employees.forEach((emp, index) => {
-
-              let salary = parseFloat(emp.salary) || 0;
-
-              let duration = getDuration(emp.date_from, emp.date_to);
-
-
-              // Default absent to 0 if empty
-              if (!emp.absent) emp.absent = 0;
-
-              // Calculate salary considering absent days
-              let perDaySalary = salary / settings.month_days;
-              let salary_amt = (salary * duration.months) + (perDaySalary * duration.days) - (perDaySalary * emp.absent);
-
-              let esicEligible = emp.deduction_on == "1" && salary <= settings.esic_limit;
-
-
-              let epf_emp = emp.deduction_on == "1" ? salary * 0.12 : 0;
-              let epf_org = emp.deduction_on == "1" ? salary * 0.13 : 0;
-
-              let esic_emp = esicEligible ? salary * 0.0075 : 0;
-              let esic_org = esicEligible ? salary * 0.0325 : 0;
-
-              let epf_emp_amt = (salary_amt * 0.12);
-              let epf_org_amt = (salary_amt * 0.13);
-
-              let esic_emp_amt = esicEligible ? (salary_amt * 0.0075): 0;
-              let esic_org_amt = esicEligible ? (salary_amt * 0.0325): 0;
-
-
-              let deduction_amt = epf_emp_amt + esic_emp_amt;
-              let net_amt = salary_amt - deduction_amt;
-              let approved_amt = salary_amt + epf_org_amt + esic_org_amt;
-
-
-              let row = $(`
-            <tr>
-                <td>${index + 1}</td>
-                <td class="emp-name-cell position-relative">
-                 <span class="fw-bold">  ${val(emp.name).toUpperCase()} </span><br><small>(${val(emp.designation)})</small>
-                   <div class="row-actions">
-                    <button class="btn btn-sm btn-warning edit-btn" data-index="${index}">Edit</button>
-                    <button class="btn btn-sm btn-danger delete-btn" data-index="${index}">Delete</button>
-                  </div>
-                </td>
-
-                <td>${formatMonthColumn(emp.date_from, emp.date_to)}</td>
-
-                <td>
-                  <small class="calcu">
-                    ${formatAmt(salary)} x 
-                    [ ${duration.months > 0 ? duration.months + ' Month' + (duration.months > 1 ? 's' : '') : ''}
-                     ${duration.months > 0 && duration.days > 0 ? ' ' : ''} ${duration.days > 0 ? duration.days + ' Day' + (duration.days > 1 ? 's' : '') : ''}] ${emp.absent > 0 ? `</br> − ${formatAmt((salary / settings.month_days) * emp.absent)} [${emp.absent} Day${emp.absent > 1 ? 's' : ''} Absent]` : ``} <br> = </small> 
-                 <span class="fs_amt"> ${formatAmt(salary_amt)}</span>
-                </td>
-
-
-                <td><span class="fs_amt">${formatAmt(epf_emp_amt)}</span></td>
-                <td><span class="fs_amt">${formatAmt(esic_emp_amt)}</span></td>
-                <td><span class="fs_amt">${formatAmt(epf_org_amt)}</span></td>
-                <td><span class="fs_amt">${formatAmt(esic_org_amt)}</span></td>
-                <td><span class="fs_amt">${formatAmt(deduction_amt)}</span></td>
-                <td><span class="fs_amt">${formatAmt(net_amt)}</span></td>
-                <td><span class="fs_amt">${formatAmt(approved_amt)}</span></td>
-
-                <td>${valPair(emp.account, emp.ifsc)}</td>
-                <td>${val(emp.remarks)}</td>
-            </tr>
-        `);
-
-              $empTable.append(row);
-            });
-
-
-            /* ================= TOTAL ROW (PERFECT ALIGNMENT) ================= */
-            let t = calculateTotals();
-            let totalRow = $("<tr style='background:#f2f2f2;font-weight:bold;font-size: 22px;'></tr>");
-
-            $("#empTable thead th").each(function (i) {
-
-              let cell = "";
-
-              switch (i) {
-                case 0: cell = ""; break;
-                case 1: cell = "--TOTAL--"; break;
-                case 2: cell = ""; break;
-
-                case 3: cell = formatAmt(t.salary); break;
-                case 4: cell = formatAmt(t.e_epf); break;
-                case 5: cell = formatAmt(t.e_esic); break;
-                case 6: cell = formatAmt(t.g_epf); break;
-                case 7: cell = formatAmt(t.g_esic); break;
-                case 8: cell = formatAmt(t.deduction); break;
-                case 9: cell = formatAmt(t.net); break;
-                case 10: cell = formatAmt(t.approved); break;
-
-                default: cell = "";
-              }
-
-              totalRow.append(`<td>${cell}</td>`);
-            });
-
-            $empTable.append(totalRow);
-
-
-            /* ================= HIDE EMPTY COLUMNS ================= */
-            $("#empTable thead th").each(function (c) {
-
-              let hide = isColumnEmpty(c);
-
-              $(this).toggle(!hide);
-
-              $empTable.find("tr").each(function () {
-                $(this).find("td").eq(c).toggle(!hide);
-              });
-            });
-          }
-
-          /*---------------------------------------------------------
-            Add / Edit / Delete Employee
-          ----------------------------------------------------------*/
-          $("#btnAdd").click(function () {
-            $("#empForm")[0].reset();
-            $("#editIndex").val("");
-            empModal.show();
-          });
-
-          $("#saveEmp").click(function (e) {
-            e.preventDefault();
-
-            let idx = $("#editIndex").val();
-
-            let data = {
-              name: val($("#name").val()),
-              designation: val($("#designation").val()),
-              salary: parseFloat($("#salary").val()) || 0,
-              date_from: val($("#date_from").val()),
-              date_to: val($("#date_to").val()),
-              absent: val($("#absent").val()),
-              deduction_on: $("#deduction_on").prop("checked") ? '1' : '0',
-              account: val($("#account").val()),
-              ifsc: val($("#ifsc").val()),
-              remarks: val($("#remarks").val())
-            };
-
-            if (idx === "") {
-              employees.push(data);
-            } else {
-              employees[idx] = data;
-            }
-
-            saveEmployees();   // ✅ SAVE HERE
-            empModal.hide();
-            renderTable();
-          });
-
-
-          $empTable.on("click", ".edit-btn", function () {
-            let i = $(this).data("index");
-            let e = employees[i];
-
-            $("#name").val(e.name);
-            $("#designation").val(e.designation);
-            $("#salary").val(e.salary);
-            $("#date_from").val(e.date_from);
-            $("#date_to").val(e.date_to);
-            $("#absent").val(e.absent);
-            $("#deduction_on").prop("checked", e.deduction_on == '1');
-            $("#account").val(e.account);
-            $("#ifsc").val(e.ifsc);
-            $("#remarks").val(e.remarks);
-
-            $("#editIndex").val(i);
-            empModal.show();
-          });
-
-          $empTable.on("click", ".delete-btn", function () {
-            let idx = $(this).data("index");
-            if (confirm("Are you sure?")) {
-              employees.splice(idx, 1);
-              saveEmployees();   // ✅ SAVE HERE
-              renderTable();
-            }
-          });
-
-
-          /*---------------------------------------------------------
-            SETTINGS MODAL
-          ----------------------------------------------------------*/
-          $("#site_title").val(settings.title);
-          $("#round_enable").prop("checked", settings.round);
-          $("#calculation_enable").prop("checked", settings.calculation_enable);
-          $("#esic_limit").val(settings.esic_limit);
-          $("#month_days").val(settings.month_days);
-
-
-          // After reading settings from localStorage
-          let sig = settings.signature || "";
-          $('#signature').tagsinput('removeAll'); // Clear any existing tags
-          sig.split(',').forEach(tag => {
-            if (tag.trim()) $('#signature').tagsinput('add', tag.trim());
-          });
-
-          // 🔁 Update signature preview on change
-          $('#signature').on('itemAdded itemRemoved', function () {
-            renderSignatures();
-          });
-          
-          // Initial preview load
-          renderSignatures();
-
-          $("#saveSettings").click(function () {
-            let sig = $('#signature').tagsinput('items').join(',');
-            settings.signature = sig;
-
-            settings.title = $("#site_title").val().trim() || "Salary Table Sheet Creator";
-            settings.round = $("#round_enable").prop("checked");
-            settings.calculation_enable = $("#calculation_enable").prop("checked");
-            settings.esic_limit = parseInt($("#esic_limit").val()) || 21000;
-            settings.month_days = parseInt($("#month_days").val()) || 30;
-
-            localStorage.setItem("settings", JSON.stringify(settings));
-
-            $("h2.text-center").html(val(settings.title));
-
-            $("#settingsModal").modal("hide");
-
-            if (settings.calculation_enable === true) { $("body").addClass("calcu-enable"); } else { $("body").removeClass("calcu-enable"); }
-
-
-            toggleRoundNote();
-
-            renderTable();
-          });
-
-
-          /*---------------------------------------------------------
-            Initial Table Load
-          ----------------------------------------------------------*/
-          renderTable();
-
-        });
-      </script>
 
     </div>
 
@@ -883,6 +497,7 @@
 </body>
 
 </html>
+
 
 
 
