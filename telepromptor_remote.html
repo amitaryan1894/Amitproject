@@ -20,8 +20,8 @@ button{margin:3px;}
   <button class="btn btn-secondary w-50" id="speedDown">Speed −</button>
   <input type="range" id="speedSlider" min="0.1" max="3" step="0.05" value="0.6" class="w-100">
   <button class="btn btn-warning w-100" id="next">Next Script</button>
-  <button class="btn btn-info w-100" id="mirrorOn">Mirror ON</button>
-  <button class="btn btn-info w-100" id="mirrorOff">Mirror OFF</button>
+  <button class="btn btn-info w-50" id="mirrorOn">Mirror ON</button>
+  <button class="btn btn-info w-50" id="mirrorOff">Mirror OFF</button>
   <button class="btn btn-secondary w-50" id="fontUp">Font +</button>
   <button class="btn btn-secondary w-50" id="fontDown">Font −</button>
   <button class="btn btn-secondary w-50" id="highlightOn">Highlight ON</button>
@@ -32,7 +32,7 @@ button{margin:3px;}
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
 import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 
-// Firebase config (same as index.html)
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyAOLJjrcw_9hi_RbwJTdRv2ZFPEKSDOrt4",
   authDomain: "github-8e32d.firebaseapp.com",
@@ -47,31 +47,41 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// Debounce function
+// Debounce only for slider
 let debounceTimeout=null;
-function sendDebounced(cmd){
-    if(debounceTimeout) clearTimeout(debounceTimeout);
-    debounceTimeout = setTimeout(()=>set(ref(db,'teleprompter/commands'),cmd),150);
-}
+
+// Instant commands
+function sendInstant(cmd){set(ref(db,'teleprompter/commands'),cmd);}
 
 // Remote button handlers
-$("#playPause").click(()=>sendDebounced({action:"playPause", value:true}));
-$("#speedUp").click(()=>sendDebounced({action:"speed", value:1.2}));
-$("#speedDown").click(()=>sendDebounced({action:"speed", value:0.5}));
-$("#speedSlider").on("input",function(){sendDebounced({action:"speed", value:parseFloat(this.value)});});
-$("#next").click(()=>sendDebounced({action:"nextScript"}));
 
-// Mirror explicit ON/OFF
-$("#mirrorOn").click(()=>sendDebounced({action:"mirror", value:true}));
-$("#mirrorOff").click(()=>sendDebounced({action:"mirror", value:false}));
+// Play/Pause instant
+$("#playPause").click(()=>sendInstant({action:"playPause", value:true}));
 
-// Font
-$("#fontUp").click(()=>sendDebounced({action:"fontUp", value:true}));
-$("#fontDown").click(()=>sendDebounced({action:"fontDown", value:true}));
+// Speed buttons instant
+$("#speedUp").click(()=>sendInstant({action:"speed", value:1.2}));
+$("#speedDown").click(()=>sendInstant({action:"speed", value:0.5}));
 
-// Highlight explicit ON/OFF
-$("#highlightOn").click(()=>sendDebounced({action:"highlight", value:true}));
-$("#highlightOff").click(()=>sendDebounced({action:"highlight", value:false}));
+// Speed slider debounced
+$("#speedSlider").on("input",function(){
+    if(debounceTimeout) clearTimeout(debounceTimeout);
+    debounceTimeout = setTimeout(()=>set(ref(db,'teleprompter/commands'),{action:"speed", value:parseFloat(this.value)}),150);
+});
+
+// Next Script
+$("#next").click(()=>sendInstant({action:"nextScript"}));
+
+// Mirror explicit ON/OFF instant
+$("#mirrorOn").click(()=>sendInstant({action:"mirror", value:true}));
+$("#mirrorOff").click(()=>sendInstant({action:"mirror", value:false}));
+
+// Font size instant
+$("#fontUp").click(()=>sendInstant({action:"fontUp", value:true}));
+$("#fontDown").click(()=>sendInstant({action:"fontDown", value:true}));
+
+// Highlight explicit ON/OFF instant
+$("#highlightOn").click(()=>sendInstant({action:"highlight", value:true}));
+$("#highlightOff").click(()=>sendInstant({action:"highlight", value:false}));
 
 </script>
 </body>
