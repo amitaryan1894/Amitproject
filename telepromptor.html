@@ -9,7 +9,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <style>
 body{margin:0;background:#000;color:#fff;overflow:hidden;}
-#prompter{position:fixed;inset:0;padding:60px 20px 90px;overflow:hidden;font-size:clamp(22px,4vw,48px);}
+#prompter{position:fixed;inset:0;padding:60px 20px 120px;overflow:hidden;font-size:clamp(22px,4vw,48px);}
 #content{position:relative;line-height:1.6;}
 .word.active{background:#ffc107;color:#000;border-radius:4px;padding:2px 4px;}
 footer{position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);z-index:999;transition:0.3s;}
@@ -23,8 +23,18 @@ footer.hide-footer{transform:translateY(100%);}
 
 <footer class="p-2 text-center">
   <div class="d-flex flex-wrap justify-content-around align-items-center gap-2">
+    <button class="btn btn-light" id="playPause">▶</button>
+    <button class="btn btn-secondary" id="speedDown">➖</button>
+    <input type="range" id="speedSlider" min="0.1" max="3" step="0.05" value="0.6" class="w-25">
+    <button class="btn btn-secondary" id="speedUp">➕</button>
+    <button class="btn btn-secondary" id="fontDown">A−</button>
+    <button class="btn btn-secondary" id="fontUp">A+</button>
+    <button class="btn btn-secondary" id="mirrorBtn">🪞</button>
+    <button class="btn btn-secondary" id="highlightBtn">✨</button>
+    <button class="btn btn-secondary" id="voiceBtn">🎤</button>
     <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#scriptModal">📜 Scripts</button>
     <a href="telepromptor_remote.html" target="_blank" class="btn btn-success">📡 Open Remote</a>
+    <button class="btn btn-light" id="fullscreenBtn">⛶</button>
   </div>
 </footer>
 
@@ -47,7 +57,7 @@ footer.hide-footer{transform:translateY(100%);}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 
 // Firebase config
 const firebaseConfig = {
@@ -64,18 +74,21 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
+// Variables
 let scrollPos=0,isPaused=true;
 let manualSpeed=0.6,fontSize=40;
 let highlight=false,mirror=false,voiceAssist=true;
 let words=[],currentWord=0;
 let audioCtx, analyser, dataArray, silence=0;
 
+// Prepare text
 function prepareText(text){
     words=text.split(/\s+/);
     $("#content").html(words.map((w,i)=>`<span data-i="${i}">${w}</span>`).join(" "));
     scrollPos=0; currentWord=0;
 }
 
+// Mic
 function startMic(){if(audioCtx)return;
 navigator.mediaDevices.getUserMedia({audio:true}).then(stream=>{
     audioCtx=new AudioContext();
@@ -86,6 +99,7 @@ navigator.mediaDevices.getUserMedia({audio:true}).then(stream=>{
     animate();
 });}
 
+// Animate
 function animate(){
     if(!analyser){requestAnimationFrame(animate);return;}
     analyser.getByteFrequencyData(dataArray);
@@ -103,6 +117,18 @@ function animate(){
     }
     requestAnimationFrame(animate);
 }
+
+/* Footer controls */
+$("#playPause").click(()=>{isPaused=!isPaused;$("#playPause").text(isPaused?"▶":"⏸");if(!audioCtx)startMic();});
+$("#speedUp").click(()=>{$("#speedSlider").val(Math.min(3,manualSpeed+.1)).trigger("input");});
+$("#speedDown").click(()=>{$("#speedSlider").val(Math.max(.1,manualSpeed-.1)).trigger("input");});
+$("#speedSlider").on("input",function(){manualSpeed=parseFloat(this.value); set(ref(db, 'teleprompter/commands'), {action:"speed", value:manualSpeed});});
+$("#fontUp").click(()=>{fontSize++; $("#prompter").css("font-size",fontSize+"px"); set(ref(db,'teleprompter/commands'),{action:"fontUp"});});
+$("#fontDown").click(()=>{fontSize--; $("#prompter").css("font-size",fontSize+"px"); set(ref(db,'teleprompter/commands'),{action:"fontDown"});});
+$("#mirrorBtn").click(()=>{mirror=!mirror; $("#content").toggleClass("mirror",mirror); set(ref(db,'teleprompter/commands'),{action:"mirror",value:mirror});});
+$("#highlightBtn").click(()=>{highlight=!highlight; set(ref(db,'teleprompter/commands'),{action:"highlight"});});
+$("#voiceBtn").click(()=>voiceAssist=!voiceAssist);
+$("#fullscreenBtn").click(()=>document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen());
 
 /* Script storage */
 function loadList(){let s=JSON.parse(localStorage.getItem("scripts")||"{}");$("#playlist").empty();Object.keys(s).forEach(k=>$("#playlist").append(`<option>${k}</option>`));}
@@ -126,17 +152,13 @@ onValue(ref(db, 'teleprompter/commands'), snapshot=>{
     const cmd=snapshot.val();
     if(!cmd) return;
     switch(cmd.action){
-        case "playPause":isPaused=!isPaused;if(!audioCtx)startMic(); break;
-        case "speed":manualSpeed=cmd.value; break;
-        case "mirror":mirror=!mirror; $("#content").toggleClass("mirror",mirror); break;
+        case "playPause":$("#playPause").click(); break;
+        case "speed":manualSpeed=cmd.value; $("#speedSlider").val(cmd.value); break;
+        case "mirror":mirror=cmd.value; $("#mirrorBtn").click(); break;
         case "fontUp":fontSize++; $("#prompter").css("font-size",fontSize+"px"); break;
         case "fontDown":fontSize--; $("#prompter").css("font-size",fontSize+"px"); break;
         case "highlight":highlight=!highlight; break;
-        case "nextScript":
-            let s=JSON.parse(localStorage.getItem("scripts")||"{}");
-            let keys=Object.keys(s);
-            if(keys.length>0) prepareText(s[keys[0]]);
-            break;
+        case "nextScript":$("#playScript").click(); break;
     }
 });
 </script>
