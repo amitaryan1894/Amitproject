@@ -341,6 +341,13 @@
             return String(x).replace(/\*/g, "</br>");
           }
           function valPair(a, b) { return (!a && !b) ? "" : `${val(a)} </br>( ${val(b)} )`; }
+          
+          // Apply rounding only if enabled in settings
+          function applyRound(value) {
+            value = parseFloat(value) || 0;
+            return settings.round ? Math.round(value) : value;
+          }
+          
 
           // Format amount function with ROUND setting applied
           function formatAmt(amount, up_down = null) {
@@ -883,5 +890,6 @@ totals.approved += settings.round ? Math.round(approved_amt) : approved_amt;
 </body>
 
 </html>
+
 
 
