@@ -2,267 +2,162 @@
 <html lang="hi">
 <head>
 <meta charset="UTF-8">
-<title>Fullscreen Teleprompter</title>
+<title>Teleprompter Upgraded</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
-<!-- Bootstrap 5 -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <style>
-body{
-    margin:0;
-    background:#000;
-    color:#fff;
-    overflow:hidden;
-}
-
-/* FULLSCREEN PROMPTER */
-#prompter{
-    position:fixed;
-    top:0; left:0;
-    width:100vw;
-    height:100vh;
-    padding:40px;
-    overflow:hidden;
-    font-size:clamp(22px,4vw,48px);
-}
-
-#content{
-    position:relative;
-    line-height:1.6;
-}
-
-/* WORD HIGHLIGHT */
-.word{ padding:2px 4px; }
-.word.active{
-    background:#ffc107;
-    color:#000;
-    border-radius:4px;
-}
-
-/* TOP BAR */
-#topBar{
-    position:fixed;
-    top:10px;
-    right:10px;
-    z-index:999;
-}
+body{margin:0;background:#000;color:#fff;overflow:hidden;}
+#prompter{position:fixed;inset:0;padding:60px 20px 90px;overflow:hidden;font-size:clamp(22px,4vw,48px);}
+#content{position:relative;line-height:1.6;}
+.word.active{background:#ffc107;color:#000;border-radius:4px;padding:2px 4px;}
+footer{position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);z-index:999;transition:0.3s;}
+footer.hide-footer{transform:translateY(100%);}
+footer button, #speedSlider{font-size:20px;}
+#content.mirror{transform:scaleX(-1);}
 </style>
 </head>
-
 <body>
 
-<!-- TOP BAR -->
-<div id="topBar">
-    <button class="btn btn-light btn-sm me-1" id="fullscreenBtn">⛶</button>
-    <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#settingsModal">
-        ⚙️ Settings
-    </button>
-</div>
+<div id="prompter"><div id="content">⚙️ Script modal से load करें</div></div>
 
-<!-- PROMPTER -->
-<div id="prompter">
-    <div id="content">Script load करें और 🎤 Start दबाएँ…</div>
+<footer class="p-2 text-center">
+<div class="d-flex flex-wrap justify-content-around align-items-center gap-2">
+<button class="btn btn-light" id="playPause">▶</button>
+<button class="btn btn-secondary" id="speedDown">➖</button>
+<input type="range" id="speedSlider" min="0.1" max="3" step="0.05" value="0.6" class="w-50">
+<button class="btn btn-secondary" id="speedUp">➕</button>
+<button class="btn btn-secondary" id="fontDown">A−</button>
+<button class="btn btn-secondary" id="fontUp">A+</button>
+<button class="btn btn-secondary" id="mirrorBtn">🪞</button>
+<button class="btn btn-secondary" id="highlightBtn">✨</button>
+<button class="btn btn-secondary" id="voiceBtn">🎤</button>
+<button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#scriptModal">📜</button>
+<button class="btn btn-light" id="fullscreenBtn">⛶</button>
 </div>
+</footer>
 
-<!-- SETTINGS MODAL -->
-<div class="modal fade" id="settingsModal" tabindex="-1">
+<!-- Script Modal -->
+<div class="modal fade" id="scriptModal" tabindex="-1">
 <div class="modal-dialog modal-dialog-scrollable modal-lg">
 <div class="modal-content text-dark">
-
 <div class="modal-header">
-<h5 class="modal-title">Teleprompter Settings</h5>
-<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<h5 class="modal-title">Script Manager</h5>
+<button class="btn-close" data-bs-dismiss="modal"></button>
 </div>
-
 <div class="modal-body">
-
-<div class="alert alert-info" id="micInfo">
-🎤 Microphone permission जरूरी है
-</div>
-
-<label>Script Name</label>
-<input type="text" id="scriptName" class="form-control mb-2">
-
-<label>Script Text</label>
-<textarea id="scriptText" rows="4" class="form-control mb-2"></textarea>
-
-<button class="btn btn-success w-100 mb-3" id="saveScript">Save Script</button>
-
-<select id="playlist" class="form-select mb-2" multiple></select>
-
-<button class="btn btn-info w-100 mb-2" id="playNext">▶️ Play Next</button>
-<button class="btn btn-danger w-100 mb-3" id="deleteScript">Delete Selected</button>
-
-<hr>
-
-<div class="form-check form-switch mb-2">
-<input class="form-check-input" type="checkbox" id="highlightToggle">
-<label class="form-check-label">Word Highlight</label>
-</div>
-
-<div class="form-check form-switch mb-3">
-<input class="form-check-input" type="checkbox" id="mirrorToggle">
-<label class="form-check-label">Mirror Mode</label>
-</div>
-
-<label>Font Size</label>
-<input type="range" min="20" max="80" value="40" id="fontSize" class="form-range">
-
-<label>Font Color</label>
-<input type="color" id="fontColor" class="form-control form-control-color mb-3">
-
-<label>Scroll Sensitivity</label>
-<input type="range" min="1" max="10" value="4" id="sensitivity" class="form-range mb-3">
-
-<button class="btn btn-primary w-100" id="startMic">🎤 Start Teleprompter</button>
-
-</div>
-
-</div>
-</div>
-</div>
+<input class="form-control mb-2" id="scriptName" placeholder="Script name">
+<textarea class="form-control mb-2" rows="4" id="scriptText" placeholder="Write script here..."></textarea>
+<button class="btn btn-success w-100 mb-2" id="saveScript">💾 Save Script</button>
+<select class="form-select mb-2" id="playlist" size="5"></select>
+<button class="btn btn-primary w-100 mb-2" id="playScript">▶ Play Selected</button>
+<button class="btn btn-danger w-100" id="deleteScript">🗑 Delete Selected</button>
+</div></div></div></div>
 
 <script>
-let audioContext=null, analyser=null, mic=null;
-let dataArray;
-let scrollPos=0, sensitivity=4;
-let silenceTimer=0, silenceLimit=30;
-let isPaused=false;
+// Firebase config
+const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    databaseURL: "https://YOUR_PROJECT.firebaseio.com",
+    projectId: "YOUR_PROJECT",
+    storageBucket: "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "XXX",
+    appId: "XXX"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-let words=[], currentWord=0;
-let highlightEnabled=false, mirrored=false;
-let playIndex=0;
+// Variables
+let scrollPos=0,isPaused=true;
+let manualSpeed=0.6,fontSize=40;
+let highlight=false,mirror=false,voiceAssist=true;
+let words=[],currentWord=0;
+let audioCtx, analyser, dataArray, silence=0;
 
-/* FULLSCREEN */
-$("#fullscreenBtn").click(()=>{
-    if(!document.fullscreenElement){
-        document.documentElement.requestFullscreen();
-    }else{
-        document.exitFullscreen();
-    }
-});
-
-/* PREPARE WORDS */
+// Prepare text
 function prepareText(text){
     words=text.split(/\s+/);
-    let html="";
-    words.forEach((w,i)=>{
-        html+=`<span class="word" data-i="${i}">${w}</span> `;
-    });
-    $("#content").html(html);
-    currentWord=0;
+    $("#content").html(words.map((w,i)=>`<span data-i="${i}">${w}</span>`).join(" "));
+    scrollPos=0; currentWord=0;
 }
 
-/* MIC START */
-function startMic(){
-    if(audioContext) return;
+// Mic
+function startMic(){if(audioCtx)return;
+navigator.mediaDevices.getUserMedia({audio:true}).then(stream=>{
+    audioCtx=new AudioContext();
+    analyser=audioCtx.createAnalyser();
+    audioCtx.createMediaStreamSource(stream).connect(analyser);
+    analyser.fftSize=256;
+    dataArray=new Uint8Array(analyser.frequencyBinCount);
+    animate();
+});}
 
-    navigator.mediaDevices.getUserMedia({audio:true})
-    .then(stream=>{
-        $("#micInfo").hide();
-        audioContext=new AudioContext();
-        analyser=audioContext.createAnalyser();
-        mic=audioContext.createMediaStreamSource(stream);
-        mic.connect(analyser);
-        analyser.fftSize=256;
-        dataArray=new Uint8Array(analyser.frequencyBinCount);
-        animateScroll();
-    })
-    .catch(()=>alert("Microphone permission denied"));
-}
-
-/* SCROLL + WORD HIGHLIGHT */
-function animateScroll(){
+// Animate
+function animate(){
+    if(!analyser){requestAnimationFrame(animate);return;}
     analyser.getByteFrequencyData(dataArray);
-
-    let energy=0;
-    for(let i=10;i<40;i++) energy+=dataArray[i];
-
-    if(energy<200){
-        silenceTimer++;
-        if(silenceTimer>silenceLimit) isPaused=true;
-    }else{
-        silenceTimer=0;
-        isPaused=false;
-    }
-
+    let energy=dataArray.slice(10,40).reduce((a,b)=>a+b,0);
+    if(energy<180){silence++; if(silence>25) isPaused=true;} else {silence=0; isPaused=false;}
     if(!isPaused){
-        let speed=(energy/800)*sensitivity;
-        scrollPos+=speed;
+        let boost=voiceAssist?Math.min(1.4,Math.max(.8,energy/350)):1;
+        scrollPos+=manualSpeed*boost;
         $("#content").css("top",-scrollPos+"px");
-
-        if(highlightEnabled){
-            $(".word").removeClass("active");
-            $(`.word[data-i='${Math.floor(currentWord)}']`).addClass("active");
-            currentWord+=speed*0.02;
+        if(highlight){
+            $("span").removeClass("active");
+            $(`span[data-i="${Math.floor(currentWord)}"]`).addClass("active");
+            currentWord+=manualSpeed*0.03;
         }
     }
-    requestAnimationFrame(animateScroll);
+    requestAnimationFrame(animate);
 }
 
-/* CONTROLS */
-$("#startMic").click(()=>{
-    prepareText($("#scriptText").val());
-    scrollPos=0;
-    startMic();
-    bootstrap.Modal.getInstance(document.getElementById("settingsModal")).hide();
-});
+/* Footer controls */
+$("#playPause").click(()=>{isPaused=!isPaused;$("#playPause").text(isPaused?"▶":"⏸");if(!audioCtx)startMic();});
+$("#speedUp").click(()=>{$("#speedSlider").val(Math.min(3,manualSpeed+.1)).trigger("input");});
+$("#speedDown").click(()=>{$("#speedSlider").val(Math.max(.1,manualSpeed-.1)).trigger("input");});
+$("#speedSlider").on("input",function(){manualSpeed=parseFloat(this.value); db.ref('teleprompter/commands').set({action:"speed", value:manualSpeed});});
+$("#fontUp").click(()=>$("#prompter").css("font-size",++fontSize+"px"));
+$("#fontDown").click(()=>$("#prompter").css("font-size",--fontSize+"px"));
+$("#mirrorBtn").click(()=>{mirror=!mirror; $("#content").toggleClass("mirror",mirror); db.ref('teleprompter/commands').set({action:"mirror", value:mirror});});
+$("#highlightBtn").click(()=>highlight=!highlight);
+$("#voiceBtn").click(()=>voiceAssist=!voiceAssist);
+$("#fullscreenBtn").click(()=>document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen());
 
-$("#highlightToggle").change(e=>highlightEnabled=e.target.checked);
+/* Script storage */
+function loadList(){let s=JSON.parse(localStorage.getItem("scripts")||"{}");$("#playlist").empty();Object.keys(s).forEach(k=>$("#playlist").append(`<option>${k}</option>`));}
+loadList();
+$("#saveScript").click(()=>{let s=JSON.parse(localStorage.getItem("scripts")||"{}"); s[$("#scriptName").val()]=$("#scriptText").val(); localStorage.setItem("scripts",JSON.stringify(s)); loadList(); });
+$("#playScript").click(()=>{let s=JSON.parse(localStorage.getItem("scripts")||"{}"); let n=$("#playlist").val(); prepareText(s[n]); isPaused=false; $("#playPause").text("⏸"); bootstrap.Modal.getInstance(scriptModal).hide(); startMic(); });
+$("#deleteScript").click(()=>{let s=JSON.parse(localStorage.getItem("scripts")||"{}"); delete s[$("#playlist").val()]; localStorage.setItem("scripts",JSON.stringify(s)); loadList();});
 
-$("#mirrorToggle").change(e=>{
-    mirrored=e.target.checked;
-    $("#content").css("transform",mirrored?"scaleX(-1)":"scaleX(1)");
-});
+/* Bluetooth / keyboard fallback */
+document.addEventListener("keydown",e=>{if(e.code==="Space")$("#playPause").click(); if(e.code==="ArrowUp"){$("#speedSlider").val(Math.min(3,manualSpeed+.1)).trigger("input");} if(e.code==="ArrowDown"){$("#speedSlider").val(Math.max(.1,manualSpeed-.1)).trigger("input");}});
 
-$("#fontSize").on("input",e=>{
-    $("#prompter").css("font-size",e.target.value+"px");
-});
-$("#fontColor").on("input",e=>{
-    $("#content").css("color",e.target.value);
-});
-$("#sensitivity").on("input",e=>sensitivity=e.target.value);
-
-/* STORAGE */
-function loadScripts(){
-    let s=JSON.parse(localStorage.getItem("teleScripts")||"{}");
-    $("#playlist").empty();
-    $.each(s,k=>$("#playlist").append(`<option>${k}</option>`));
+/* Footer auto-hide */
+let footerTimer;
+function showFooter(){
+    $("footer").removeClass("hide-footer");
+    clearTimeout(footerTimer);
+    footerTimer=setTimeout(()=>$("footer").addClass("hide-footer"),3000);
 }
-loadScripts();
+$(document).on("mousemove touchstart",showFooter);
+showFooter();
 
-$("#saveScript").click(()=>{
-    let n=$("#scriptName").val(), t=$("#scriptText").val();
-    if(!n) return alert("Script name required");
-    let s=JSON.parse(localStorage.getItem("teleScripts")||"{}");
-    s[n]=t;
-    localStorage.setItem("teleScripts",JSON.stringify(s));
-    loadScripts();
-});
-
-$("#playNext").click(()=>{
-    let s=JSON.parse(localStorage.getItem("teleScripts")||"{}");
-    let list=$("#playlist option");
-    if(playIndex>=list.length) playIndex=0;
-    let name=list.eq(playIndex).text();
-    $("#scriptText").val(s[name]);
-    prepareText(s[name]);
-    scrollPos=0;
-    playIndex++;
-});
-
-$("#deleteScript").click(()=>{
-    let s=JSON.parse(localStorage.getItem("teleScripts")||"{}");
-    $("#playlist option:selected").each(function(){
-        delete s[$(this).text()];
-    });
-    localStorage.setItem("teleScripts",JSON.stringify(s));
-    loadScripts();
+/* Firebase remote listener */
+db.ref('teleprompter/commands').on('value',snapshot=>{
+    let cmd=snapshot.val();
+    if(!cmd) return;
+    switch(cmd.action){
+        case "playPause":$("#playPause").click(); break;
+        case "speed":manualSpeed=cmd.value; $("#speedSlider").val(cmd.value); break;
+        case "mirror":mirror=cmd.value; $("#mirrorBtn").click(); break;
+        case "nextScript":$("#playScript").click(); break;
+    }
 });
 </script>
-
 </body>
 </html>
