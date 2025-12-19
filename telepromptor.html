@@ -118,15 +118,22 @@ function animate(){
     requestAnimationFrame(animate);
 }
 
+/* Debounce function for stable commands */
+let debounceTimeout=null;
+function sendDebounced(cmd){
+    if(debounceTimeout) clearTimeout(debounceTimeout);
+    debounceTimeout = setTimeout(()=>set(ref(db,'teleprompter/commands'),cmd),150);
+}
+
 /* Footer controls */
-$("#playPause").click(()=>{isPaused=!isPaused;$("#playPause").text(isPaused?"▶":"⏸");if(!audioCtx)startMic();});
+$("#playPause").click(()=>{isPaused=!isPaused;$("#playPause").text(isPaused?"▶":"⏸"); sendDebounced({action:"playPause", value:!isPaused}); if(!audioCtx)startMic();});
 $("#speedUp").click(()=>{$("#speedSlider").val(Math.min(3,manualSpeed+.1)).trigger("input");});
 $("#speedDown").click(()=>{$("#speedSlider").val(Math.max(.1,manualSpeed-.1)).trigger("input");});
-$("#speedSlider").on("input",function(){manualSpeed=parseFloat(this.value); set(ref(db, 'teleprompter/commands'), {action:"speed", value:manualSpeed});});
-$("#fontUp").click(()=>{fontSize++; $("#prompter").css("font-size",fontSize+"px"); set(ref(db,'teleprompter/commands'),{action:"fontUp"});});
-$("#fontDown").click(()=>{fontSize--; $("#prompter").css("font-size",fontSize+"px"); set(ref(db,'teleprompter/commands'),{action:"fontDown"});});
-$("#mirrorBtn").click(()=>{mirror=!mirror; $("#content").toggleClass("mirror",mirror); set(ref(db,'teleprompter/commands'),{action:"mirror",value:mirror});});
-$("#highlightBtn").click(()=>{highlight=!highlight; set(ref(db,'teleprompter/commands'),{action:"highlight"});});
+$("#speedSlider").on("input",function(){manualSpeed=parseFloat(this.value); sendDebounced({action:"speed", value:manualSpeed});});
+$("#fontUp").click(()=>{fontSize++; $("#prompter").css("font-size",fontSize+"px"); sendDebounced({action:"fontUp", value:fontSize});});
+$("#fontDown").click(()=>{fontSize--; $("#prompter").css("font-size",fontSize+"px"); sendDebounced({action:"fontDown", value:fontSize});});
+$("#mirrorBtn").click(()=>{mirror=!mirror; $("#content").toggleClass("mirror",mirror); sendDebounced({action:"mirror", value:mirror});});
+$("#highlightBtn").click(()=>{highlight=!highlight; sendDebounced({action:"highlight", value:highlight});});
 $("#voiceBtn").click(()=>voiceAssist=!voiceAssist);
 $("#fullscreenBtn").click(()=>document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen());
 
@@ -148,16 +155,16 @@ $(document).on("mousemove touchstart",showFooter);
 showFooter();
 
 /* Firebase remote listener */
-onValue(ref(db, 'teleprompter/commands'), snapshot=>{
+onValue(ref(db,'teleprompter/commands'), snapshot=>{
     const cmd=snapshot.val();
     if(!cmd) return;
     switch(cmd.action){
-        case "playPause":$("#playPause").click(); break;
+        case "playPause":if($("#playPause").text() !== (cmd.value?"⏸":"▶")) $("#playPause").click(); break;
         case "speed":manualSpeed=cmd.value; $("#speedSlider").val(cmd.value); break;
-        case "mirror":mirror=cmd.value; $("#mirrorBtn").click(); break;
-        case "fontUp":fontSize++; $("#prompter").css("font-size",fontSize+"px"); break;
-        case "fontDown":fontSize--; $("#prompter").css("font-size",fontSize+"px"); break;
-        case "highlight":highlight=!highlight; break;
+        case "mirror":mirror=cmd.value; $("#content").toggleClass("mirror",mirror); break;
+        case "fontUp":fontSize=cmd.value; $("#prompter").css("font-size",fontSize+"px"); break;
+        case "fontDown":fontSize=cmd.value; $("#prompter").css("font-size",fontSize+"px"); break;
+        case "highlight":highlight=cmd.value; break;
         case "nextScript":$("#playScript").click(); break;
     }
 });
