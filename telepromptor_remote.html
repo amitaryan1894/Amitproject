@@ -6,20 +6,26 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<style>
+body{background:#111;color:#fff;padding:10px;}
+button{margin:3px;}
+</style>
 </head>
-<body class="p-3">
-<h4>Teleprompter Remote</h4>
+<body>
 
+<h4>Teleprompter Remote</h4>
 <div class="d-flex flex-wrap gap-2">
   <button class="btn btn-primary w-100" id="playPause">▶ / ⏸</button>
   <button class="btn btn-secondary w-50" id="speedUp">Speed +</button>
   <button class="btn btn-secondary w-50" id="speedDown">Speed −</button>
   <input type="range" id="speedSlider" min="0.1" max="3" step="0.05" value="0.6" class="w-100">
   <button class="btn btn-warning w-100" id="next">Next Script</button>
-  <button class="btn btn-info w-100" id="mirror">Mirror Toggle</button>
+  <button class="btn btn-info w-100" id="mirrorOn">Mirror ON</button>
+  <button class="btn btn-info w-100" id="mirrorOff">Mirror OFF</button>
   <button class="btn btn-secondary w-50" id="fontUp">Font +</button>
   <button class="btn btn-secondary w-50" id="fontDown">Font −</button>
-  <button class="btn btn-secondary w-100" id="highlightBtn">✨ Highlight</button>
+  <button class="btn btn-secondary w-50" id="highlightOn">Highlight ON</button>
+  <button class="btn btn-secondary w-50" id="highlightOff">Highlight OFF</button>
 </div>
 
 <script type="module">
@@ -41,20 +47,32 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// Send command to Firebase
-function sendCommand(cmd){set(ref(db, 'teleprompter/commands'), cmd);}
+// Debounce function
+let debounceTimeout=null;
+function sendDebounced(cmd){
+    if(debounceTimeout) clearTimeout(debounceTimeout);
+    debounceTimeout = setTimeout(()=>set(ref(db,'teleprompter/commands'),cmd),150);
+}
 
-// Remote controls
-$("#playPause").click(()=>sendCommand({action:"playPause"}));
-$("#speedUp").click(()=>sendCommand({action:"speed", value:1.2}));
-$("#speedDown").click(()=>sendCommand({action:"speed", value:0.5}));
-$("#speedSlider").on("input",function(){sendCommand({action:"speed", value:parseFloat(this.value)});});
-$("#next").click(()=>sendCommand({action:"nextScript"}));
-$("#mirror").click(()=>sendCommand({action:"mirror"}));
-$("#fontUp").click(()=>sendCommand({action:"fontUp"}));
-$("#fontDown").click(()=>sendCommand({action:"fontDown"}));
-$("#highlightBtn").click(()=>sendCommand({action:"highlight"}));
+// Remote button handlers
+$("#playPause").click(()=>sendDebounced({action:"playPause", value:true}));
+$("#speedUp").click(()=>sendDebounced({action:"speed", value:1.2}));
+$("#speedDown").click(()=>sendDebounced({action:"speed", value:0.5}));
+$("#speedSlider").on("input",function(){sendDebounced({action:"speed", value:parseFloat(this.value)});});
+$("#next").click(()=>sendDebounced({action:"nextScript"}));
+
+// Mirror explicit ON/OFF
+$("#mirrorOn").click(()=>sendDebounced({action:"mirror", value:true}));
+$("#mirrorOff").click(()=>sendDebounced({action:"mirror", value:false}));
+
+// Font
+$("#fontUp").click(()=>sendDebounced({action:"fontUp", value:true}));
+$("#fontDown").click(()=>sendDebounced({action:"fontDown", value:true}));
+
+// Highlight explicit ON/OFF
+$("#highlightOn").click(()=>sendDebounced({action:"highlight", value:true}));
+$("#highlightOff").click(()=>sendDebounced({action:"highlight", value:false}));
+
 </script>
-
 </body>
 </html>
