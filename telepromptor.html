@@ -100,7 +100,7 @@ body{
 </div>
 </div>
 
-<script>
+script>
 let audioContext=null, analyser=null, mic=null;
 let dataArray, animationId=null;
 let scrollPos=0, sensitivity=4;
@@ -142,3 +142,84 @@ function animateScroll(){
         silenceTimer++;
         if(silenceTimer>silenceLimit) isPaused=true;
     }else{
+        silenceTimer=0;
+        isPaused=false;
+    }
+
+    if(!isPaused){
+        let speed=(speechEnergy/800)*sensitivity;
+        scrollPos+=speed;
+        $("#content").css("top",-scrollPos+"px");
+    }
+
+    animationId=requestAnimationFrame(animateScroll);
+}
+
+/* CONTROLS */
+$("#startMic").click(()=>{
+    $("#content").text($("#scriptText").val());
+    scrollPos=0;
+    startMic();
+});
+
+$("#fontSize").on("input",e=>{
+    $("#content").css("font-size",e.target.value+"px");
+});
+$("#fontColor").on("input",e=>{
+    $("#content").css("color",e.target.value);
+});
+$("#sensitivity").on("input",e=>{
+    sensitivity=e.target.value;
+});
+
+/* MIRROR */
+$("#mirrorBtn").click(()=>{
+    mirrored=!mirrored;
+    $("#content").css("transform",mirrored?"scaleX(-1)":"scaleX(1)");
+});
+
+/* STORAGE */
+function loadScripts(){
+    let s=JSON.parse(localStorage.getItem("teleScripts")||"{}");
+    $("#playlist").empty();
+    $.each(s,k=>$("#playlist").append(`<option>${k}</option>`));
+}
+loadScripts();
+
+$("#saveScript").click(()=>{
+    let n=$("#scriptName").val(), t=$("#scriptText").val();
+    if(!n) return alert("Script name required");
+    let s=JSON.parse(localStorage.getItem("teleScripts")||"{}");
+    s[n]=t;
+    localStorage.setItem("teleScripts",JSON.stringify(s));
+    loadScripts();
+});
+
+$("#playNext").click(()=>{
+    let s=JSON.parse(localStorage.getItem("teleScripts")||"{}");
+    let list=$("#playlist option");
+    if(playIndex>=list.length) playIndex=0;
+    let name=list.eq(playIndex).text();
+    $("#content").text(s[name]);
+    scrollPos=0;
+    playIndex++;
+});
+
+$("#deleteScript").click(()=>{
+    let s=JSON.parse(localStorage.getItem("teleScripts")||"{}");
+    $("#playlist option:selected").each(function(){
+        delete s[$(this).text()];
+    });
+    localStorage.setItem("teleScripts",JSON.stringify(s));
+    loadScripts();
+});
+
+/* MOBILE TOGGLE */
+$("#toggleControls").click(()=>{
+    $("#controls").toggle();
+});
+</script>
+
+</body>
+    </html>
+        
