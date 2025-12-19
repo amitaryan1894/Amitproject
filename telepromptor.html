@@ -2,78 +2,86 @@
 <html lang="hi">
 <head>
 <meta charset="UTF-8">
-<title>Smart Teleprompter</title>
+<title>Fullscreen Teleprompter</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
+<!-- Bootstrap 5 -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <style>
 body{
-    background:#111;
+    margin:0;
+    background:#000;
     color:#fff;
     overflow:hidden;
 }
+
+/* FULLSCREEN PROMPTER */
 #prompter{
-    height:75vh;
+    position:fixed;
+    top:0; left:0;
+    width:100vw;
+    height:100vh;
+    padding:40px;
     overflow:hidden;
-    border:2px solid #333;
-    padding:20px;
-    font-size:clamp(20px,4vw,42px);
+    font-size:clamp(22px,4vw,48px);
 }
+
 #content{
     position:relative;
     line-height:1.6;
 }
-.word{
-    padding:2px 4px;
-}
+
+/* WORD HIGHLIGHT */
+.word{ padding:2px 4px; }
 .word.active{
     background:#ffc107;
     color:#000;
     border-radius:4px;
 }
-.control-box{ font-size:14px; }
 
-@media(max-width:768px){
-    .control-box{
-        position:fixed;
-        bottom:0;
-        left:0;
-        right:0;
-        background:#000;
-        z-index:999;
-        border-top:2px solid #333;
-        max-height:45vh;
-        overflow:auto;
-    }
-    #prompter{ height:85vh; }
+/* TOP BAR */
+#topBar{
+    position:fixed;
+    top:10px;
+    right:10px;
+    z-index:999;
 }
 </style>
 </head>
 
 <body>
 
-<div class="container-fluid mt-2">
-<div class="row g-2">
-
-<!-- TELEPROMPTER -->
-<div class="col-12 col-md-9 order-1">
-    <div id="prompter">
-        <div id="content">Script load करें और 🎤 Start दबाएँ…</div>
-    </div>
+<!-- TOP BAR -->
+<div id="topBar">
+    <button class="btn btn-light btn-sm me-1" id="fullscreenBtn">⛶</button>
+    <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#settingsModal">
+        ⚙️ Settings
+    </button>
 </div>
 
-<!-- CONTROLS -->
-<div class="col-12 col-md-3 order-2 control-box" id="controls">
+<!-- PROMPTER -->
+<div id="prompter">
+    <div id="content">Script load करें और 🎤 Start दबाएँ…</div>
+</div>
 
-<div class="alert alert-info text-dark mb-2" id="micInfo">
+<!-- SETTINGS MODAL -->
+<div class="modal fade" id="settingsModal" tabindex="-1">
+<div class="modal-dialog modal-dialog-scrollable modal-lg">
+<div class="modal-content text-dark">
+
+<div class="modal-header">
+<h5 class="modal-title">Teleprompter Settings</h5>
+<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+
+<div class="modal-body">
+
+<div class="alert alert-info" id="micInfo">
 🎤 Microphone permission जरूरी है
 </div>
-
-<button class="btn btn-warning w-100 mb-2 d-md-none" id="toggleControls">
-⚙️ Controls
-</button>
 
 <label>Script Name</label>
 <input type="text" id="scriptName" class="form-control mb-2">
@@ -81,31 +89,37 @@ body{
 <label>Script Text</label>
 <textarea id="scriptText" rows="4" class="form-control mb-2"></textarea>
 
-<button class="btn btn-success w-100 mb-2" id="saveScript">Save Script</button>
+<button class="btn btn-success w-100 mb-3" id="saveScript">Save Script</button>
 
 <select id="playlist" class="form-select mb-2" multiple></select>
 
 <button class="btn btn-info w-100 mb-2" id="playNext">▶️ Play Next</button>
-<button class="btn btn-danger w-100 mb-2" id="deleteScript">Delete Selected</button>
+<button class="btn btn-danger w-100 mb-3" id="deleteScript">Delete Selected</button>
 
 <hr>
 
 <div class="form-check form-switch mb-2">
-  <input class="form-check-input" type="checkbox" id="highlightToggle">
-  <label class="form-check-label">Word Highlight</label>
+<input class="form-check-input" type="checkbox" id="highlightToggle">
+<label class="form-check-label">Word Highlight</label>
+</div>
+
+<div class="form-check form-switch mb-3">
+<input class="form-check-input" type="checkbox" id="mirrorToggle">
+<label class="form-check-label">Mirror Mode</label>
 </div>
 
 <label>Font Size</label>
-<input type="range" min="20" max="80" value="32" id="fontSize" class="form-range">
+<input type="range" min="20" max="80" value="40" id="fontSize" class="form-range">
 
 <label>Font Color</label>
-<input type="color" id="fontColor" class="form-control form-control-color mb-2">
+<input type="color" id="fontColor" class="form-control form-control-color mb-3">
 
-<label>Sensitivity</label>
-<input type="range" min="1" max="10" value="4" id="sensitivity" class="form-range mb-2">
+<label>Scroll Sensitivity</label>
+<input type="range" min="1" max="10" value="4" id="sensitivity" class="form-range mb-3">
 
-<button class="btn btn-secondary w-100 mb-2" id="mirrorBtn">🪞 Mirror Mode</button>
 <button class="btn btn-primary w-100" id="startMic">🎤 Start Teleprompter</button>
+
+</div>
 
 </div>
 </div>
@@ -113,30 +127,40 @@ body{
 
 <script>
 let audioContext=null, analyser=null, mic=null;
-let dataArray, animationId=null;
+let dataArray;
 let scrollPos=0, sensitivity=4;
 let silenceTimer=0, silenceLimit=30;
-let isPaused=false, mirrored=false;
+let isPaused=false;
+
+let words=[], currentWord=0;
+let highlightEnabled=false, mirrored=false;
 let playIndex=0;
 
-let words=[], currentWord=0, highlightEnabled=false;
+/* FULLSCREEN */
+$("#fullscreenBtn").click(()=>{
+    if(!document.fullscreenElement){
+        document.documentElement.requestFullscreen();
+    }else{
+        document.exitFullscreen();
+    }
+});
 
 /* PREPARE WORDS */
 function prepareText(text){
+    words=text.split(/\s+/);
     let html="";
-    words = text.split(/\s+/);
     words.forEach((w,i)=>{
-        html += `<span class="word" data-i="${i}">${w}</span> `;
+        html+=`<span class="word" data-i="${i}">${w}</span> `;
     });
     $("#content").html(html);
     currentWord=0;
 }
 
-/* START MIC */
+/* MIC START */
 function startMic(){
     if(audioContext) return;
 
-    navigator.mediaDevices.getUserMedia({ audio:true })
+    navigator.mediaDevices.getUserMedia({audio:true})
     .then(stream=>{
         $("#micInfo").hide();
         audioContext=new AudioContext();
@@ -147,17 +171,17 @@ function startMic(){
         dataArray=new Uint8Array(analyser.frequencyBinCount);
         animateScroll();
     })
-    .catch(()=>alert("Microphone permission denied ❌"));
+    .catch(()=>alert("Microphone permission denied"));
 }
 
-/* SCROLL + HIGHLIGHT */
+/* SCROLL + WORD HIGHLIGHT */
 function animateScroll(){
     analyser.getByteFrequencyData(dataArray);
 
-    let speechEnergy=0;
-    for(let i=10;i<40;i++) speechEnergy+=dataArray[i];
+    let energy=0;
+    for(let i=10;i<40;i++) energy+=dataArray[i];
 
-    if(speechEnergy<200){
+    if(energy<200){
         silenceTimer++;
         if(silenceTimer>silenceLimit) isPaused=true;
     }else{
@@ -166,18 +190,17 @@ function animateScroll(){
     }
 
     if(!isPaused){
-        let speed=(speechEnergy/800)*sensitivity;
+        let speed=(energy/800)*sensitivity;
         scrollPos+=speed;
         $("#content").css("top",-scrollPos+"px");
 
-        if(highlightEnabled && words.length){
-            let idx=Math.min(currentWord, words.length-1);
+        if(highlightEnabled){
             $(".word").removeClass("active");
-            $(`.word[data-i='${idx}']`).addClass("active");
-            currentWord += speed*0.02;
+            $(`.word[data-i='${Math.floor(currentWord)}']`).addClass("active");
+            currentWord+=speed*0.02;
         }
     }
-    animationId=requestAnimationFrame(animateScroll);
+    requestAnimationFrame(animateScroll);
 }
 
 /* CONTROLS */
@@ -185,27 +208,23 @@ $("#startMic").click(()=>{
     prepareText($("#scriptText").val());
     scrollPos=0;
     startMic();
+    bootstrap.Modal.getInstance(document.getElementById("settingsModal")).hide();
 });
 
-$("#highlightToggle").change(function(){
-    highlightEnabled=this.checked;
-    $(".word").removeClass("active");
+$("#highlightToggle").change(e=>highlightEnabled=e.target.checked);
+
+$("#mirrorToggle").change(e=>{
+    mirrored=e.target.checked;
+    $("#content").css("transform",mirrored?"scaleX(-1)":"scaleX(1)");
 });
 
 $("#fontSize").on("input",e=>{
-    $("#content").css("font-size",e.target.value+"px");
+    $("#prompter").css("font-size",e.target.value+"px");
 });
 $("#fontColor").on("input",e=>{
     $("#content").css("color",e.target.value);
 });
-$("#sensitivity").on("input",e=>{
-    sensitivity=e.target.value;
-});
-
-$("#mirrorBtn").click(()=>{
-    mirrored=!mirrored;
-    $("#content").css("transform",mirrored?"scaleX(-1)":"scaleX(1)");
-});
+$("#sensitivity").on("input",e=>sensitivity=e.target.value);
 
 /* STORAGE */
 function loadScripts(){
@@ -243,11 +262,7 @@ $("#deleteScript").click(()=>{
     localStorage.setItem("teleScripts",JSON.stringify(s));
     loadScripts();
 });
-
-$("#toggleControls").click(()=>{
-    $("#controls").toggle();
-});
 </script>
 
 </body>
-    </html>
+</html>
