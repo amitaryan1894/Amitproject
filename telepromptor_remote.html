@@ -9,6 +9,7 @@
 </head>
 <body class="p-3">
 <h4>Teleprompter Remote</h4>
+
 <div class="d-flex flex-wrap gap-2">
   <button class="btn btn-primary w-100" id="playPause">▶ / ⏸</button>
   <button class="btn btn-secondary w-50" id="speedUp">Speed +</button>
@@ -25,6 +26,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
 import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 
+// Firebase config (same as index.html)
 const firebaseConfig = {
   apiKey: "AIzaSyAOLJjrcw_9hi_RbwJTdRv2ZFPEKSDOrt4",
   authDomain: "github-8e32d.firebaseapp.com",
@@ -39,8 +41,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
+// Send command to Firebase
 function sendCommand(cmd){set(ref(db, 'teleprompter/commands'), cmd);}
 
+// Remote controls
 $("#playPause").click(()=>sendCommand({action:"playPause"}));
 $("#speedUp").click(()=>sendCommand({action:"speed", value:1.2}));
 $("#speedDown").click(()=>sendCommand({action:"speed", value:0.5}));
@@ -51,5 +55,6 @@ $("#fontUp").click(()=>sendCommand({action:"fontUp"}));
 $("#fontDown").click(()=>sendCommand({action:"fontDown"}));
 $("#highlightBtn").click(()=>sendCommand({action:"highlight"}));
 </script>
+
 </body>
 </html>
