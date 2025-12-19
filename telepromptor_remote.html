@@ -10,12 +10,15 @@
 <body class="p-3">
 <h4>Teleprompter Remote</h4>
 <div class="d-flex flex-wrap gap-2">
-<button class="btn btn-primary w-100" id="playPause">▶ / ⏸</button>
-<button class="btn btn-secondary w-50" id="speedUp">Speed +</button>
-<button class="btn btn-secondary w-50" id="speedDown">Speed −</button>
-<input type="range" id="speedSlider" min="0.1" max="3" step="0.05" value="0.6" class="w-100">
-<button class="btn btn-warning w-100" id="next">Next Script</button>
-<button class="btn btn-info w-100" id="mirror">Mirror Toggle</button>
+  <button class="btn btn-primary w-100" id="playPause">▶ / ⏸</button>
+  <button class="btn btn-secondary w-50" id="speedUp">Speed +</button>
+  <button class="btn btn-secondary w-50" id="speedDown">Speed −</button>
+  <input type="range" id="speedSlider" min="0.1" max="3" step="0.05" value="0.6" class="w-100">
+  <button class="btn btn-warning w-100" id="next">Next Script</button>
+  <button class="btn btn-info w-100" id="mirror">Mirror Toggle</button>
+  <button class="btn btn-secondary w-50" id="fontUp">Font +</button>
+  <button class="btn btn-secondary w-50" id="fontDown">Font −</button>
+  <button class="btn btn-secondary w-100" id="highlightBtn">✨ Highlight</button>
 </div>
 
 <script type="module">
@@ -43,7 +46,10 @@ $("#speedUp").click(()=>sendCommand({action:"speed", value:1.2}));
 $("#speedDown").click(()=>sendCommand({action:"speed", value:0.5}));
 $("#speedSlider").on("input",function(){sendCommand({action:"speed", value:parseFloat(this.value)});});
 $("#next").click(()=>sendCommand({action:"nextScript"}));
-$("#mirror").click(()=>sendCommand({action:"mirror", value:true}));
+$("#mirror").click(()=>sendCommand({action:"mirror"}));
+$("#fontUp").click(()=>sendCommand({action:"fontUp"}));
+$("#fontDown").click(()=>sendCommand({action:"fontDown"}));
+$("#highlightBtn").click(()=>sendCommand({action:"highlight"}));
 </script>
 </body>
 </html>
