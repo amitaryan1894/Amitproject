@@ -10,39 +10,20 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
 <style>
-body{
- margin:0;background:#000;color:#fff;overflow:hidden;
- font-family:system-ui;
-}
-#prompter{
- position:fixed;inset:0;padding:40px 40px 120px;
- font-size:40px;
-}
+body{margin:0;background:#000;color:#fff;overflow:hidden;font-family:system-ui;}
+#prompter{position:fixed;inset:0;padding:40px 40px 120px;font-size:40px;}
 #content{position:relative;line-height:1.7}
-.word.active{
- background:#ffc107;color:#000;border-radius:4px;padding:2px 4px;
-}
+.word.active{background:#ffc107;color:#000;border-radius:4px;padding:2px 4px}
 
 /* TOOLS */
-#tools{
- position:fixed;bottom:0;left:0;right:0;
- background:rgba(0,0,0,.85);
- padding:8px;display:flex;gap:6px;
- overflow-x:auto;z-index:999;
-}
-.tool-btn{
- background:#222;color:#fff;border:none;
- border-radius:8px;padding:6px 10px;font-size:18px;
-}
+#tools{position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,.85);
+padding:8px;display:flex;gap:6px;overflow-x:auto;z-index:999;}
+.tool-btn{background:#222;color:#fff;border:none;border-radius:8px;padding:6px 10px;font-size:18px}
 .tool-btn.active{background:#0d6efd}
 .tool-range{width:80px}
 
 /* VOLUME */
-#volume{
- position:fixed;left:10px;bottom:70px;
- width:120px;height:8px;background:#333;
- border-radius:5px;overflow:hidden;
-}
+#volume{position:fixed;left:10px;bottom:70px;width:120px;height:8px;background:#333;border-radius:5px;overflow:hidden}
 #volume div{height:100%;width:0%;background:#0d6efd}
 </style>
 </head>
@@ -55,7 +36,6 @@ body{
 
 <div id="volume"><div></div></div>
 
-<!-- FOOTER -->
 <div id="tools">
  <button class="tool-btn" id="play">▶</button>
  <button class="tool-btn" id="rewind">⏪</button>
@@ -110,6 +90,7 @@ let rewinding=false;
 /* VOICE LOGIC */
 let silenceFrames=0;
 let manualPause=false;
+let manualVoiceOff=false;
 const VOICE_THRESHOLD=120;
 const SILENCE_LIMIT=25;
 
@@ -141,16 +122,11 @@ function loop(){
  let energy=data.slice(10,40).reduce((a,b)=>a+b,0);
  $("#volume div").css("width",Math.min(100,energy/5)+"%");
 
- /* 🔁 AUTO RESUME (only if NOT manual pause) */
- if(
-  paused &&
-  !manualPause &&
-  voice &&
-  energy > VOICE_THRESHOLD
- ){
-  paused=false;
+ /* 🔊 AUTO VOICE ON */
+ if(!voice && !manualVoiceOff && energy > VOICE_THRESHOLD){
+  voice=true;
+  $("#voice").addClass("active");
   silenceFrames=0;
-  $("#play").text("⏸");
  }
 
  if(!paused){
@@ -167,12 +143,12 @@ function loop(){
     index+=speed*0.025;
    }
 
-  }else{
+  }else if(voice){
    silenceFrames++;
    if(silenceFrames>SILENCE_LIMIT){
-    paused=true;
-    manualPause=false; // auto pause
-    $("#play").text("▶");
+    voice=false;
+    $("#voice").removeClass("active");
+    silenceFrames=0;
    }
   }
 
@@ -186,11 +162,8 @@ function loop(){
 $("#play").click(()=>{
  if(words.length===0){alert("पहले Script load करें");return;}
  startMic();
-
  paused=!paused;
- manualPause=paused; // 👈 user intent saved
-
- silenceFrames=0;
+ manualPause=paused;
  $("#play").text(paused?"▶":"⏸");
 });
 
@@ -205,7 +178,12 @@ $("#rewind").on("mousedown touchstart",()=>{
  })();
 }).on("mouseup touchend",()=>rewinding=false);
 
-$("#voice").click(()=>{voice=!voice;$("#voice").toggleClass("active",voice);});
+$("#voice").click(()=>{
+ voice=!voice;
+ manualVoiceOff=!voice;
+ $("#voice").toggleClass("active",voice);
+});
+
 $("#highlight").click(()=>{highlight=!highlight;$("#highlight").toggleClass("active",highlight);});
 $("#mirror").click(()=>{
  mirrored=!mirrored;
@@ -247,7 +225,7 @@ $("#deleteScript").click(()=>{
  loadList();
 });
 
-/* KEYBOARD / EARBUDS */
+/* KEYBOARD */
 document.addEventListener("keydown",e=>{
  if(e.code==="Space"||e.code==="MediaPlayPause"){
   e.preventDefault();
