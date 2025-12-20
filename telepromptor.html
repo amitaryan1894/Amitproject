@@ -14,12 +14,24 @@ body{margin:0;background:#000;color:#fff;overflow:hidden;font-family:system-ui;}
 #prompter{position:fixed;inset:0;padding:40px 40px 120px;font-size:40px;}
 #content{position:relative;line-height:1.7}
 .word.active{background:#ffc107;color:#000;border-radius:4px;padding:2px 4px}
-#tools{position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,.85);
-padding:8px;display:flex;gap:6px;overflow-x:auto;z-index:999;}
+
+/* TOOLS */
+#tools{
+ position:fixed;bottom:0;left:0;right:0;
+ background:rgba(0,0,0,.85);
+ padding:8px;display:flex;gap:6px;
+ overflow-x:auto;z-index:999;
+}
 .tool-btn{background:#222;color:#fff;border:none;border-radius:8px;padding:6px 10px;font-size:18px}
 .tool-btn.active{background:#0d6efd}
 .tool-range{width:80px}
-#volume{position:fixed;left:10px;bottom:70px;width:120px;height:8px;background:#333;border-radius:5px;overflow:hidden}
+
+/* VOLUME */
+#volume{
+ position:fixed;left:10px;bottom:70px;
+ width:120px;height:8px;background:#333;
+ border-radius:5px;overflow:hidden
+}
 #volume div{height:100%;width:0%;background:#0d6efd}
 </style>
 </head>
@@ -35,17 +47,20 @@ padding:8px;display:flex;gap:6px;overflow-x:auto;z-index:999;}
 <div id="tools">
  <button class="tool-btn" id="play">▶</button>
  <button class="tool-btn" id="rewind">⏪</button>
+
  <button class="tool-btn active" id="voice">🎤</button>
  <button class="tool-btn" id="highlight">🔦</button>
  <button class="tool-btn" id="mirror">🪞</button>
- <input type="range" min="0.1" max="3" step="0.1" value="0.6" id="speed" class="tool-range">
- <input type="range" min="20" max="80" value="40" id="fontSize" class="tool-range">
+
+ <input type="range" min="0.1" max="3" step="0.1" id="speed" class="tool-range">
+ <input type="range" min="20" max="80" id="fontSize" class="tool-range">
  <input type="color" id="fontColor">
+
  <button class="tool-btn" data-bs-toggle="modal" data-bs-target="#scriptModal">📝</button>
  <button class="tool-btn" id="fullscreen">⛶</button>
 </div>
 
-<!-- SCRIPT MODAL (unchanged) -->
+<!-- SCRIPT MODAL -->
 <div class="modal fade" id="scriptModal">
 <div class="modal-dialog modal-lg modal-dialog-scrollable">
 <div class="modal-content text-dark">
@@ -68,39 +83,67 @@ padding:8px;display:flex;gap:6px;overflow-x:auto;z-index:999;}
 </div>
 
 <script>
-/* ========= SETTINGS STORAGE ========= */
-const SETTINGS_KEY="teleprompterSettings";
-
-function saveSettings(){
- localStorage.setItem(SETTINGS_KEY,JSON.stringify({
-  voice,highlight,mirrored,speed,
-  fontSize:$("#fontSize").val(),
-  fontColor:$("#fontColor").val()
- }));
-}
-
-function loadSettings(){
- let s=JSON.parse(localStorage.getItem(SETTINGS_KEY)||"{}");
- if(s.voice!==undefined){voice=s.voice;$("#voice").toggleClass("active",voice);}
- if(s.highlight!==undefined){highlight=s.highlight;$("#highlight").toggleClass("active",highlight);}
- if(s.mirrored!==undefined){
-  mirrored=s.mirrored;
-  $("#mirror").toggleClass("active",mirrored);
-  $("#content").css("transform",mirrored?"scaleX(-1)":"");
- }
- if(s.speed){speed=s.speed;$("#speed").val(speed);}
- if(s.fontSize){$("#fontSize").val(s.fontSize);$("#prompter").css("font-size",s.fontSize+"px");}
- if(s.fontColor){$("#fontColor").val(s.fontColor);$("#content").css("color",s.fontColor);}
-}
-
-/* ========= CORE ========= */
+/* ================= CORE ================= */
 let ctx, analyser, data;
 let micStarted=false;
 let scrollPos=0, speed=0.6, paused=true;
 let voice=true, highlight=false, mirrored=false;
 let words=[], index=0;
+let rewinding=false;
 
-/* MIC */
+/* ========== VOICE & SILENCE ========== */
+let manualVoiceOff=false;
+let silenceStartTime=null;
+let autoRewinding=false;
+let autoRewindStart=0;
+
+const VOICE_THRESHOLD=120;
+const SILENCE_REWIND_AFTER=4000;
+const AUTO_REWIND_DURATION=4000;
+const AUTO_REWIND_SPEED=1.2;
+
+/* ================= STORAGE ================= */
+const LS={
+ voice:"tp_voice",
+ highlight:"tp_highlight",
+ mirror:"tp_mirror",
+ speed:"tp_speed",
+ fontSize:"tp_fontSize",
+ fontColor:"tp_fontColor",
+ lastScript:"tp_lastScript"
+};
+
+function saveSetting(k,v){localStorage.setItem(k,JSON.stringify(v));}
+function loadSetting(k,d){return JSON.parse(localStorage.getItem(k)??JSON.stringify(d));}
+
+/* ================= INIT ================= */
+$(function(){
+ voice=loadSetting(LS.voice,true);
+ highlight=loadSetting(LS.highlight,false);
+ mirrored=loadSetting(LS.mirror,false);
+ speed=loadSetting(LS.speed,0.6);
+ let fs=loadSetting(LS.fontSize,40);
+ let fc=loadSetting(LS.fontColor,"#ffffff");
+
+ $("#voice").toggleClass("active",voice);
+ $("#highlight").toggleClass("active",highlight);
+ $("#mirror").toggleClass("active",mirrored);
+ $("#speed").val(speed);
+ $("#fontSize").val(fs);
+ $("#fontColor").val(fc);
+ $("#prompter").css("font-size",fs+"px");
+ $("#content").css("color",fc);
+ $("#content").css("transform",mirrored?"scaleX(-1)":"");
+});
+
+/* ================= TEXT ================= */
+function prepare(text){
+ words=text.trim().split(/\s+/);
+ $("#content").html(words.map((w,i)=>`<span class="word" data-i="${i}">${w}</span>`).join(" "));
+ scrollPos=0;index=0;
+}
+
+/* ================= MIC ================= */
 function startMic(){
  if(micStarted) return;
  micStarted=true;
@@ -115,36 +158,116 @@ function startMic(){
  });
 }
 
-/* LOOP (same as before – unchanged logic) */
+/* ================= LOOP ================= */
 function loop(){
  analyser.getByteFrequencyData(data);
  let energy=data.slice(10,40).reduce((a,b)=>a+b,0);
  $("#volume div").css("width",Math.min(100,energy/5)+"%");
- if(!paused && voice && energy>120){
-  scrollPos+=speed;
-  if(highlight){
-   $(".word").removeClass("active");
-   $(`.word[data-i='${Math.floor(index)}']`).addClass("active");
-   index+=speed*0.025;
+
+ let now=performance.now();
+
+ if(!voice && !manualVoiceOff && energy>VOICE_THRESHOLD){
+  voice=true;
+  $("#voice").addClass("active");
+  saveSetting(LS.voice,true);
+  silenceStartTime=null;
+  autoRewinding=false;
+ }
+
+ if(voice && energy<=VOICE_THRESHOLD){
+  if(!silenceStartTime) silenceStartTime=now;
+  if(!autoRewinding && now-silenceStartTime>=SILENCE_REWIND_AFTER){
+   autoRewinding=true;
+   autoRewindStart=now;
+  }
+ }else{
+  silenceStartTime=null;
+ }
+
+ if(!paused){
+  if(autoRewinding){
+   let e=now-autoRewindStart;
+   if(e<=AUTO_REWIND_DURATION){
+    scrollPos=Math.max(0,scrollPos-AUTO_REWIND_SPEED);
+    index=Math.max(0,index-0.03);
+    $("#content").css("top",-scrollPos+"px");
+   }else autoRewinding=false;
+   requestAnimationFrame(loop);return;
+  }
+
+  if(voice && energy>VOICE_THRESHOLD){
+   let boost=Math.min(1.6,energy/300);
+   scrollPos+=speed*boost;
+   if(highlight){
+    $(".word").removeClass("active");
+    $(`.word[data-i='${Math.floor(index)}']`).addClass("active");
+    index+=speed*0.025;
+   }
   }
   $("#content").css("top",-scrollPos+"px");
  }
  requestAnimationFrame(loop);
 }
 
-/* ========= CONTROLS ========= */
-$("#play").click(()=>{startMic();paused=!paused;$("#play").text(paused?"▶":"⏸");});
-$("#voice").click(()=>{voice=!voice;$("#voice").toggleClass("active",voice);saveSettings();});
-$("#highlight").click(()=>{highlight=!highlight;$("#highlight").toggleClass("active",highlight);saveSettings();});
-$("#mirror").click(()=>{mirrored=!mirrored;$("#mirror").toggleClass("active",mirrored);
- $("#content").css("transform",mirrored?"scaleX(-1)":"");saveSettings();});
-$("#speed").on("input",e=>{speed=parseFloat(e.target.value);saveSettings();});
-$("#fontSize").on("input",e=>{$("#prompter").css("font-size",e.target.value+"px");saveSettings();});
-$("#fontColor").on("input",e=>{$("#content").css("color",e.target.value);saveSettings();});
-$("#fullscreen").click(()=>document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen());
+/* ================= CONTROLS ================= */
+$("#play").click(()=>{
+ if(words.length===0){alert("पहले Script load करें");return;}
+ startMic();
+ paused=!paused;
+ $("#play").text(paused?"▶":"⏸");
+});
 
-/* LOAD SETTINGS ON START */
-loadSettings();
+$("#voice").click(()=>{
+ voice=!voice;
+ manualVoiceOff=!voice;
+ $("#voice").toggleClass("active",voice);
+ saveSetting(LS.voice,voice);
+});
+
+$("#highlight").click(()=>{
+ highlight=!highlight;
+ $("#highlight").toggleClass("active",highlight);
+ saveSetting(LS.highlight,highlight);
+});
+
+$("#mirror").click(()=>{
+ mirrored=!mirrored;
+ $("#mirror").toggleClass("active",mirrored);
+ $("#content").css("transform",mirrored?"scaleX(-1)":"");
+ saveSetting(LS.mirror,mirrored);
+});
+
+$("#speed").on("input",e=>{
+ speed=parseFloat(e.target.value);
+ saveSetting(LS.speed,speed);
+});
+
+$("#fontSize").on("input",e=>{
+ $("#prompter").css("font-size",e.target.value+"px");
+ saveSetting(LS.fontSize,e.target.value);
+});
+
+$("#fontColor").on("input",e=>{
+ $("#content").css("color",e.target.value);
+ saveSetting(LS.fontColor,e.target.value);
+});
+
+/* ================= SCRIPT STORAGE ================= */
+function loadList(){
+ let s=JSON.parse(localStorage.getItem("teleScripts")||"{}");
+ $("#scriptList").empty();
+ Object.keys(s).forEach(k=>$("#scriptList").append(`<option>${k}</option>`));
+}
+loadList();
+
+$("#loadScript").click(()=>{
+ let s=JSON.parse(localStorage.getItem("teleScripts")||"{}");
+ let k=$("#scriptList").val();if(!k)return;
+ prepare(s[k]);
+ saveSetting(LS.lastScript,k);
+ paused=true;
+ $("#play").text("▶");
+});
 </script>
 
 </body>
