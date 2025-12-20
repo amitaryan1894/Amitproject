@@ -2,56 +2,77 @@
 <html lang="hi">
 <head>
 <meta charset="UTF-8">
-<title>Teleprompter</title>
+<title>Smart Teleprompter</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
 <style>
-body{margin:0;background:#000;color:#fff;overflow:hidden;}
-#prompter{position:fixed;inset:0;padding:60px 20px 180px;overflow:hidden;font-size:clamp(22px,4vw,48px);}
-#content{position:relative;line-height:1.6;}
-.word.active{background:#ffc107;color:#000;border-radius:4px;padding:2px 4px;}
-footer{position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);z-index:999;transition:0.3s;}
-footer.hide-footer{transform:translateY(100%);}
+body{
+    margin:0;
+    background:#000;
+    color:#fff;
+    overflow:hidden;
+    user-select:none;
+}
+*{-webkit-tap-highlight-color:transparent;}
+
+#prompter{
+    position:fixed;
+    inset:0;
+    padding:60px 20px 90px;
+    overflow:hidden;
+    font-size:40px;
+}
+#content{
+    position:relative;
+    line-height:1.6;
+    will-change:transform;
+}
+.word.active{
+    background:#ffc107;
+    color:#000;
+    border-radius:4px;
+    padding:2px 4px;
+}
 #content.mirror{transform:scaleX(-1);}
+#content.mirror span{transform:scaleX(-1);display:inline-block;}
+
+footer{
+    position:fixed;
+    bottom:0;left:0;right:0;
+    background:rgba(0,0,0,.75);
+    backdrop-filter:blur(8px);
+    z-index:999;
+}
+footer button{font-size:20px;}
 </style>
 </head>
+
 <body>
 
-<div id="prompter"><div id="content">⚙️ Script modal से load करें</div></div>
+<div id="prompter">
+    <div id="content">⚙️ नीचे Script बटन दबाकर text load करें</div>
+</div>
 
 <footer class="p-2 text-center">
-  <div class="d-flex flex-wrap justify-content-around align-items-center gap-2">
-    <!-- Play / Pause separate buttons -->
-    <button class="btn btn-success" id="playBtn">Play ▶</button>
-    <button class="btn btn-danger" id="pauseBtn">Pause ⏸</button>
-
-    <!-- Speed -->
-    <button class="btn btn-secondary" id="speedDown">Speed −</button>
-    <input type="range" id="speedSlider" min="0.1" max="3" step="0.05" value="0.6" class="w-25">
-    <button class="btn btn-secondary" id="speedUp">Speed +</button>
-
-    <!-- Mirror -->
-    <button class="btn btn-info" id="mirrorOn">Mirror ON</button>
-    <button class="btn btn-info" id="mirrorOff">Mirror OFF</button>
-
-    <!-- Font size -->
-    <label class="text-light m-0">Font</label>
-    <input type="range" id="fontSlider" min="20" max="100" step="1" value="40" class="w-25">
-
-    <!-- Highlight -->
-    <button class="btn btn-secondary" id="highlightOn">Highlight ON</button>
-    <button class="btn btn-secondary" id="highlightOff">Highlight OFF</button>
-
-    <!-- Scripts -->
-    <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#scriptModal">📜 Scripts</button>
-    <a href="telepromptor_remote.html" target="_blank" class="btn btn-success">📡 Open Remote</a>
-    <button class="btn btn-light" id="fullscreenBtn">⛶</button>
-  </div>
+<div class="d-flex justify-content-around align-items-center">
+<button class="btn btn-light" id="playPause">▶</button>
+<button class="btn btn-secondary" id="speedDown">➖</button>
+<button class="btn btn-secondary" id="speedUp">➕</button>
+<button class="btn btn-secondary" id="fontDown">A−</button>
+<button class="btn btn-secondary" id="fontUp">A+</button>
+<button class="btn btn-secondary" id="mirrorBtn">🪞</button>
+<button class="btn btn-secondary" id="highlightBtn">✨</button>
+<button class="btn btn-secondary" id="voiceBtn">🎤</button>
+<button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#scriptModal">📜</button>
+<button class="btn btn-light" id="fullscreenBtn">⛶</button>
+</div>
 </footer>
 
-<!-- Script Modal -->
+<!-- SCRIPT MODAL -->
 <div class="modal fade" id="scriptModal" tabindex="-1">
 <div class="modal-dialog modal-dialog-scrollable modal-lg">
 <div class="modal-content text-dark">
@@ -60,139 +81,169 @@ footer.hide-footer{transform:translateY(100%);}
 <button class="btn-close" data-bs-dismiss="modal"></button>
 </div>
 <div class="modal-body">
+
+<div class="alert alert-info" id="micInfo">
+🎤 Start पर microphone permission माँगा जाएगा
+</div>
+
 <input class="form-control mb-2" id="scriptName" placeholder="Script name">
 <textarea class="form-control mb-2" rows="4" id="scriptText" placeholder="Write script here..."></textarea>
+
 <button class="btn btn-success w-100 mb-2" id="saveScript">💾 Save Script</button>
 <select class="form-select mb-2" id="playlist" size="5"></select>
 <button class="btn btn-primary w-100 mb-2" id="playScript">▶ Play Selected</button>
 <button class="btn btn-danger w-100" id="deleteScript">🗑 Delete Selected</button>
-</div></div></div></div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+</div>
+</div>
+</div>
+</div>
 
-// Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyAOLJjrcw_9hi_RbwJTdRv2ZFPEKSDOrt4",
-  authDomain: "github-8e32d.firebaseapp.com",
-  databaseURL: "https://github-8e32d-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "github-8e32d",
-  storageBucket: "github-8e32d.appspot.com",
-  messagingSenderId: "301979365830",
-  appId: "1:301979365830:web:21a72ef1ff0e47371482c7",
-  measurementId: "G-JSV9ESJTN3"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-
-// Variables
+<script>
 let scrollPos=0,isPaused=true;
 let manualSpeed=0.6,fontSize=40;
 let highlight=false,mirror=false,voiceAssist=true;
-let words=[],currentWord=0;
-let audioCtx, analyser, dataArray, silence=0;
+let words=[],audioCtx,analyser,dataArray,silence=0;
+const STEP_SCROLL = 100;
 
-// Prepare text
+/* PREPARE SCRIPT */
 function prepareText(text){
-    words=text.split(/\s+/);
-    $("#content").html(words.map((w,i)=>`<span data-i="${i}">${w}</span>`).join(" "));
-    scrollPos=0; currentWord=0;
+    if(!text||!text.trim()){
+        $("#content").html("⚠️ Script empty है");
+        return;
+    }
+    words=text.trim().split(/\s+/);
+    let html="";
+    words.forEach((w,i)=>html+=`<span class="word" data-i="${i}">${w}</span> `);
+    $("#content").html(html).css("top","0px");
+    scrollPos=0;
 }
 
-// Mic
-function startMic(){if(audioCtx)return;
-navigator.mediaDevices.getUserMedia({audio:true}).then(stream=>{
-    audioCtx=new AudioContext();
-    analyser=audioCtx.createAnalyser();
-    audioCtx.createMediaStreamSource(stream).connect(analyser);
-    analyser.fftSize=256;
-    dataArray=new Uint8Array(analyser.frequencyBinCount);
-    animate();
-});}
+/* MICROPHONE */
+function startMic(){
+    if(audioCtx) return;
+    navigator.mediaDevices.getUserMedia({audio:true})
+    .then(stream=>{
+        $("#micInfo").hide();
+        audioCtx=new AudioContext();
+        analyser=audioCtx.createAnalyser();
+        audioCtx.createMediaStreamSource(stream).connect(analyser);
+        analyser.fftSize=256;
+        dataArray=new Uint8Array(analyser.frequencyBinCount);
+        animate();
+    })
+    .catch(()=>{
+        voiceAssist=false;
+        $("#micInfo").text("❌ Microphone denied — manual mode active");
+        animate();
+    });
+}
 
-// Animate
+/* MAIN LOOP */
 function animate(){
-    if(!analyser){requestAnimationFrame(animate);return;}
-    analyser.getByteFrequencyData(dataArray);
-    let energy=dataArray.slice(10,40).reduce((a,b)=>a+b,0);
-    if(energy<180){silence++; if(silence>25) isPaused=true;} else {silence=0; isPaused=false;}
-    if(!isPaused){
-        let boost=voiceAssist?Math.min(1.4,Math.max(.8,energy/350)):1;
-        scrollPos+=manualSpeed*boost;
-        $("#content").css("top",-scrollPos+"px");
-        if(highlight){
-            $("span").removeClass("active");
-            $(`span[data-i="${Math.floor(currentWord)}"]`).addClass("active");
-            currentWord+=manualSpeed*0.03;
-        }
+    if(analyser){
+        analyser.getByteFrequencyData(dataArray);
+        let energy=dataArray.slice(10,40).reduce((a,b)=>a+b,0);
+        if(energy<180){silence++;if(silence>25)isPaused=true;}
+        else silence=0;
     }
+
+    if(!isPaused){
+        scrollPos+=manualSpeed*(voiceAssist?1.2:1);
+        $("#content").css("top",-scrollPos+"px");
+    }
+
+    if(highlight){
+        $("span").removeClass("active");
+        let idx=Math.floor((scrollPos/$("#content")[0].scrollHeight)*words.length);
+        $(`span[data-i="${idx}"]`).addClass("active");
+    }
+
     requestAnimationFrame(animate);
 }
 
-/* Debounce function only for slider */
-let debounceTimeout=null;
-function sendDebounced(cmd){
-    if(debounceTimeout) clearTimeout(debounceTimeout);
-    debounceTimeout = setTimeout(()=>set(ref(db,'teleprompter/commands'),cmd),150);
+/* MANUAL SCROLL */
+function scrollByStep(px){
+    scrollPos=Math.max(0,scrollPos+px);
+    $("#content").css("top",-scrollPos+"px");
 }
 
-/* Footer controls */
-
-// Play / Pause separate buttons
-$("#playBtn").click(()=>{isPaused=false; sendDebounced({action:"playPause", value:true}); if(!audioCtx)startMic();});
-$("#pauseBtn").click(()=>{isPaused=true; sendDebounced({action:"playPause", value:false});});
-
-// Speed
-$("#speedUp").click(()=>sendDebounced({action:"speed", value:1.2}));
-$("#speedDown").click(()=>sendDebounced({action:"speed", value:0.5}));
-$("#speedSlider").on("input",function(){manualSpeed=parseFloat(this.value); sendDebounced({action:"speed", value:manualSpeed});});
-
-// Mirror ON/OFF
-$("#mirrorOn").click(()=>{mirror=true; $("#content").addClass("mirror"); sendDebounced({action:"mirror", value:true});});
-$("#mirrorOff").click(()=>{mirror=false; $("#content").removeClass("mirror"); sendDebounced({action:"mirror", value:false});});
-
-// Font slider
-$("#fontSlider").on("input", function(){fontSize=parseInt(this.value); $("#prompter").css("font-size",fontSize+"px"); sendDebounced({action:"fontSize", value:fontSize});});
-
-// Highlight ON/OFF
-$("#highlightOn").click(()=>{highlight=true; sendDebounced({action:"highlight", value:true});});
-$("#highlightOff").click(()=>{highlight=false; sendDebounced({action:"highlight", value:false});});
-
-// Fullscreen
+/* UI CONTROLS */
+$("#playPause").click(()=>{
+    isPaused=!isPaused;
+    $("#playPause").text(isPaused?"▶":"⏸");
+    if(!audioCtx) startMic();
+});
+$("#speedUp").click(()=>manualSpeed=Math.min(3,manualSpeed+.1));
+$("#speedDown").click(()=>manualSpeed=Math.max(.1,manualSpeed-.1));
+$("#fontUp").click(()=>$("#prompter").css("font-size",++fontSize+"px"));
+$("#fontDown").click(()=>$("#prompter").css("font-size",fontSize=Math.max(16,--fontSize)+"px"));
+$("#mirrorBtn").click(()=>$("#content").toggleClass("mirror",mirror=!mirror));
+$("#highlightBtn").click(()=>highlight=!highlight);
+$("#voiceBtn").click(()=>voiceAssist=!voiceAssist);
 $("#fullscreenBtn").click(()=>document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen());
 
-/* Script storage */
-function loadList(){let s=JSON.parse(localStorage.getItem("scripts")||"{}");$("#playlist").empty();Object.keys(s).forEach(k=>$("#playlist").append(`<option>${k}</option>`));}
-loadList();
-$("#saveScript").click(()=>{let s=JSON.parse(localStorage.getItem("scripts")||"{}"); s[$("#scriptName").val()]=$("#scriptText").val(); localStorage.setItem("scripts",JSON.stringify(s)); loadList(); });
-$("#playScript").click(()=>{let s=JSON.parse(localStorage.getItem("scripts")||"{}"); let n=$("#playlist").val(); prepareText(s[n]); isPaused=false; $("#playPause").text("⏸"); bootstrap.Modal.getInstance(scriptModal).hide(); startMic(); });
-$("#deleteScript").click(()=>{let s=JSON.parse(localStorage.getItem("scripts")||"{}"); delete s[$("#playlist").val()]; localStorage.setItem("scripts",JSON.stringify(s)); loadList();});
-
-/* Footer auto-hide */
-let footerTimer;
-function showFooter(){
-    $("footer").removeClass("hide-footer");
-    clearTimeout(footerTimer);
-    footerTimer=setTimeout(()=>$("footer").addClass("hide-footer"),3000);
+/* STORAGE */
+function loadList(){
+    let s=JSON.parse(localStorage.getItem("scripts")||"{}");
+    $("#playlist").empty();
+    Object.keys(s).forEach(k=>$("#playlist").append(`<option>${k}</option>`));
 }
-$(document).on("mousemove touchstart",showFooter);
-showFooter();
+loadList();
 
-/* Firebase remote listener */
-onValue(ref(db,'teleprompter/commands'), snapshot=>{
-    const cmd=snapshot.val();
-    if(!cmd) return;
-    switch(cmd.action){
-        case "playPause": isPaused=!cmd.value ? true : false; break;
-        case "speed": manualSpeed=cmd.value; $("#speedSlider").val(cmd.value); break;
-        case "mirror": mirror=cmd.value; $("#content").toggleClass("mirror",mirror); break;
-        case "fontSize": fontSize=cmd.value; $("#prompter").css("font-size",fontSize+"px"); $("#fontSlider").val(fontSize); break;
-        case "highlight": highlight=cmd.value; break;
-        case "nextScript": $("#playScript").click(); break;
-    }
+$("#saveScript").click(()=>{
+    let s=JSON.parse(localStorage.getItem("scripts")||"{}");
+    s[$("#scriptName").val()]=$("#scriptText").val();
+    localStorage.setItem("scripts",JSON.stringify(s));
+    loadList();
+});
+$("#playScript").click(()=>{
+    let s=JSON.parse(localStorage.getItem("scripts")||"{}");
+    prepareText(s[$("#playlist").val()]);
+    isPaused=false;
+    $("#playPause").text("⏸");
+    bootstrap.Modal.getInstance(scriptModal).hide();
+    startMic();
+});
+$("#deleteScript").click(()=>{
+    let s=JSON.parse(localStorage.getItem("scripts")||"{}");
+    delete s[$("#playlist").val()];
+    localStorage.setItem("scripts",JSON.stringify(s));
+    loadList();
+});
+
+/* 🎧 BLUETOOTH MEDIA CONTROLS */
+if("mediaSession"in navigator){
+    navigator.mediaSession.metadata=new MediaMetadata({
+        title:"Smart Teleprompter",
+        artist:"Script Scroll",
+        album:"Teleprompter Mode"
+    });
+
+    navigator.mediaSession.setActionHandler("play",()=>{
+        isPaused=false;$("#playPause").text("⏸");
+    });
+    navigator.mediaSession.setActionHandler("pause",()=>{
+        isPaused=true;$("#playPause").text("▶");
+    });
+
+    navigator.mediaSession.setActionHandler("nexttrack",()=>{
+        scrollByStep(STEP_SCROLL); // ⏭ DOWN
+    });
+
+    navigator.mediaSession.setActionHandler("previoustrack",()=>{
+        scrollByStep(-STEP_SCROLL); // ⏮ UP
+    });
+}
+
+/* MEDIA KEY FALLBACK */
+document.addEventListener("keydown",e=>{
+    if(e.code==="MediaPlayPause"){isPaused=!isPaused;}
+    if(e.code==="MediaNextTrack")scrollByStep(STEP_SCROLL);
+    if(e.code==="MediaPreviousTrack")scrollByStep(-STEP_SCROLL);
+    $("#playPause").text(isPaused?"▶":"⏸");
 });
 </script>
+
 </body>
 </html>
