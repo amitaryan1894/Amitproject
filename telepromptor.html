@@ -2,7 +2,7 @@
 <html lang="hi">
 <head>
 <meta charset="UTF-8">
-<title>Pro Teleprompter – Final</title>
+<title>Pro Teleprompter – Voice Controlled</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -23,7 +23,7 @@ body{
  background:#ffc107;color:#000;border-radius:4px;padding:2px 4px;
 }
 
-/* FOOTER TOOLS */
+/* FOOTER */
 #tools{
  position:fixed;bottom:0;left:0;right:0;
  background:rgba(0,0,0,.85);backdrop-filter:blur(8px);
@@ -42,7 +42,7 @@ body{
  .tool-range{width:65px}
 }
 
-/* VOLUME */
+/* VOLUME BAR */
 #volume{
  position:fixed;left:10px;bottom:70px;
  width:120px;height:8px;background:#333;
@@ -114,7 +114,12 @@ let voice=true, highlight=false, mirrored=false;
 let words=[], index=0;
 let rewinding=false;
 
-/* ---------------- SETTINGS STORAGE ---------------- */
+/* VOICE CONTROL */
+let silenceFrames=0;
+const VOICE_THRESHOLD=120;
+const SILENCE_LIMIT=25;
+
+/* ---------------- SETTINGS ---------------- */
 const SETTINGS_KEY="teleSettings";
 
 function saveSettings(){
@@ -125,14 +130,14 @@ function saveSettings(){
  }));
 }
 function rgbToHex(rgb){
- if(!rgb) return "#ffffff";
- let m=rgb.match(/\d+/g);
+ let m=rgb?.match(/\d+/g); if(!m) return "#fff";
  return "#"+m.map(x=>(+x).toString(16).padStart(2,"0")).join("");
 }
 function loadSettings(){
  let s=JSON.parse(localStorage.getItem(SETTINGS_KEY)||"null");
  if(!s) return;
- speed=s.speed??speed;voice=s.voice;highlight=s.highlight;mirrored=s.mirrored;
+ speed=s.speed??speed;voice=s.voice;
+ highlight=s.highlight;mirrored=s.mirrored;
  $("#speed").val(speed);
  $("#fontSize").val(parseInt(s.fontSize));
  $("#fontColor").val(rgbToHex(s.fontColor));
@@ -170,34 +175,44 @@ function startMic(){
 /* ---------------- LOOP ---------------- */
 function loop(){
  analyser.getByteFrequencyData(data);
+
  let energy=data.slice(10,40).reduce((a,b)=>a+b,0);
  $("#volume div").css("width",Math.min(100,energy/5)+"%");
-if(!paused){
 
- let VOICE_THRESHOLD = 120; // जरूरत अनुसार 100–150 adjust कर सकते हैं
+ if(!paused){
 
- if(voice && energy > VOICE_THRESHOLD){
-   let boost = Math.min(1.5, energy / 300);
-   scrollPos += speed * boost;
- }
+  if(voice && energy>VOICE_THRESHOLD){
+   silenceFrames=0;
 
- $("#content").css("top", -scrollPos + "px");
-}
-  if(highlight){
-   $(".word").removeClass("active");
-   $(`.word[data-i='${Math.floor(index)}']`).addClass("active");
-   index+=speed*0.025;
+   let boost=Math.min(1.6,energy/300);
+   scrollPos+=speed*boost;
+
+   if(highlight){
+    $(".word").removeClass("active");
+    $(`.word[data-i='${Math.floor(index)}']`).addClass("active");
+    index+=speed*0.025;
+   }
+
+  }else{
+   silenceFrames++;
+   if(silenceFrames>SILENCE_LIMIT){
+    paused=true;
+    $("#play").text("▶");
+   }
   }
+
+  $("#content").css("top",-scrollPos+"px");
  }
+
  requestAnimationFrame(loop);
 }
 
-/* ---------------- FOOTER CONTROLS ---------------- */
+/* ---------------- CONTROLS ---------------- */
 $("#play").click(()=>{
- if(rewinding) return;
  if(words.length===0){alert("पहले Script load करें");return;}
  startMic();
  paused=!paused;
+ silenceFrames=0;
  $("#play").text(paused?"▶":"⏸");
 });
 
@@ -253,7 +268,7 @@ $("#deleteScript").click(()=>{
  loadList();
 });
 
-/* ---------------- BLUETOOTH / KEYBOARD ---------------- */
+/* KEYBOARD */
 document.addEventListener("keydown",e=>{
  if(e.code==="Space"||e.code==="MediaPlayPause"){
   e.preventDefault();$("#play").click();
