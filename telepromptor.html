@@ -322,6 +322,16 @@ $("#deleteScript").off("click").on("click", ()=>{
 
  alert("Script Deleted ✔");
 });
+ /* AUTO-FILL SCRIPT NAME & TEXT ON SELECT */
+$("#scriptList").on("change", function(){
+ let key = $(this).val();
+ if(!key) return;
+
+ let scripts = JSON.parse(localStorage.getItem("teleScripts") || "{}");
+
+ $("#scriptName").val(key);
+ $("#scriptText").val(scripts[key] || "");
+});
 </script>
 
 </body>
