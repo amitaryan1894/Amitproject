@@ -253,21 +253,74 @@ $("#fontColor").on("input",e=>{
  saveSetting(LS.fontColor,e.target.value);
 });
 
-/* ================= SCRIPT STORAGE ================= */
+/* ================= SCRIPT STORAGE (FIXED) ================= */
+
 function loadList(){
- let s=JSON.parse(localStorage.getItem("teleScripts")||"{}");
+ let s = JSON.parse(localStorage.getItem("teleScripts") || "{}");
  $("#scriptList").empty();
- Object.keys(s).forEach(k=>$("#scriptList").append(`<option>${k}</option>`));
+ Object.keys(s).forEach(k=>{
+  $("#scriptList").append(`<option value="${k}">${k}</option>`);
+ });
 }
 loadList();
 
-$("#loadScript").click(()=>{
- let s=JSON.parse(localStorage.getItem("teleScripts")||"{}");
- let k=$("#scriptList").val();if(!k)return;
- prepare(s[k]);
- saveSetting(LS.lastScript,k);
- paused=true;
+/* SAVE / UPDATE */
+$("#saveScript").off("click").on("click", ()=>{
+ let name = $("#scriptName").val().trim();
+ let text = $("#scriptText").val().trim();
+
+ if(!name || !text){
+  alert("Script Name और Text दोनों जरूरी हैं");
+  return;
+ }
+
+ let scripts = JSON.parse(localStorage.getItem("teleScripts") || "{}");
+ scripts[name] = text;
+
+ localStorage.setItem("teleScripts", JSON.stringify(scripts));
+ loadList();
+
+ alert("Script Saved / Updated ✔");
+});
+
+/* LOAD */
+$("#loadScript").off("click").on("click", ()=>{
+ let key = $("#scriptList").val();
+ if(!key) return;
+
+ let scripts = JSON.parse(localStorage.getItem("teleScripts") || "{}");
+ prepare(scripts[key]);
+
+ $("#scriptName").val(key);
+ $("#scriptText").val(scripts[key]);
+
+ localStorage.setItem("tp_lastScript", JSON.stringify(key));
+
+ paused = true;
  $("#play").text("▶");
+});
+
+/* DELETE */
+$("#deleteScript").off("click").on("click", ()=>{
+ let key = $("#scriptList").val();
+ if(!key){
+  alert("पहले Script select करें");
+  return;
+ }
+
+ if(!confirm("क्या आप वाकई इस Script को delete करना चाहते हैं?")) return;
+
+ let scripts = JSON.parse(localStorage.getItem("teleScripts") || "{}");
+ delete scripts[key];
+
+ localStorage.setItem("teleScripts", JSON.stringify(scripts));
+ loadList();
+
+ $("#scriptName").val("");
+ $("#scriptText").val("");
+ $("#content").html("📝 Script जोड़ें और ▶ दबाएँ…");
+
+ alert("Script Deleted ✔");
 });
 </script>
 
