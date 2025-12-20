@@ -172,10 +172,17 @@ function loop(){
  analyser.getByteFrequencyData(data);
  let energy=data.slice(10,40).reduce((a,b)=>a+b,0);
  $("#volume div").css("width",Math.min(100,energy/5)+"%");
- if(!paused){
-  let boost=voice?Math.min(1.4,Math.max(0.8,energy/350)):1;
-  scrollPos+=speed*boost;
-  $("#content").css("top",-scrollPos+"px");
+if(!paused){
+
+ let VOICE_THRESHOLD = 120; // जरूरत अनुसार 100–150 adjust कर सकते हैं
+
+ if(voice && energy > VOICE_THRESHOLD){
+   let boost = Math.min(1.5, energy / 300);
+   scrollPos += speed * boost;
+ }
+
+ $("#content").css("top", -scrollPos + "px");
+}
   if(highlight){
    $(".word").removeClass("active");
    $(`.word[data-i='${Math.floor(index)}']`).addClass("active");
