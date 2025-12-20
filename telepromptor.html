@@ -2,7 +2,7 @@
 <html lang="hi">
 <head>
 <meta charset="UTF-8">
-<title>Pro Teleprompter – Voice Auto Resume</title>
+<title>Pro Teleprompter – Smart Voice Control</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -109,6 +109,7 @@ let rewinding=false;
 
 /* VOICE LOGIC */
 let silenceFrames=0;
+let manualPause=false;
 const VOICE_THRESHOLD=120;
 const SILENCE_LIMIT=25;
 
@@ -140,8 +141,13 @@ function loop(){
  let energy=data.slice(10,40).reduce((a,b)=>a+b,0);
  $("#volume div").css("width",Math.min(100,energy/5)+"%");
 
- /* 🔁 AUTO RESUME */
- if(paused && voice && energy>VOICE_THRESHOLD){
+ /* 🔁 AUTO RESUME (only if NOT manual pause) */
+ if(
+  paused &&
+  !manualPause &&
+  voice &&
+  energy > VOICE_THRESHOLD
+ ){
   paused=false;
   silenceFrames=0;
   $("#play").text("⏸");
@@ -151,6 +157,7 @@ function loop(){
 
   if(voice && energy>VOICE_THRESHOLD){
    silenceFrames=0;
+
    let boost=Math.min(1.6,energy/300);
    scrollPos+=speed*boost;
 
@@ -164,6 +171,7 @@ function loop(){
    silenceFrames++;
    if(silenceFrames>SILENCE_LIMIT){
     paused=true;
+    manualPause=false; // auto pause
     $("#play").text("▶");
    }
   }
@@ -178,7 +186,10 @@ function loop(){
 $("#play").click(()=>{
  if(words.length===0){alert("पहले Script load करें");return;}
  startMic();
+
  paused=!paused;
+ manualPause=paused; // 👈 user intent saved
+
  silenceFrames=0;
  $("#play").text(paused?"▶":"⏸");
 });
@@ -224,7 +235,10 @@ $("#saveScript").click(()=>{
 $("#loadScript").click(()=>{
  let s=JSON.parse(localStorage.getItem("teleScripts")||"{}");
  let k=$("#scriptList").val();if(!k)return;
- prepare(s[k]);paused=true;$("#play").text("▶");
+ prepare(s[k]);
+ paused=true;
+ manualPause=true;
+ $("#play").text("▶");
 });
 $("#deleteScript").click(()=>{
  let s=JSON.parse(localStorage.getItem("teleScripts")||"{}");
@@ -232,7 +246,15 @@ $("#deleteScript").click(()=>{
  delete s[k];localStorage.setItem("teleScripts",JSON.stringify(s));
  loadList();
 });
+
+/* KEYBOARD / EARBUDS */
+document.addEventListener("keydown",e=>{
+ if(e.code==="Space"||e.code==="MediaPlayPause"){
+  e.preventDefault();
+  $("#play").click();
+ }
+});
 </script>
 
 </body>
- </html>
+</html>
