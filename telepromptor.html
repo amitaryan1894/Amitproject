@@ -2,79 +2,63 @@
 <html lang="hi">
 <head>
 <meta charset="UTF-8">
-<title>Smart Teleprompter</title>
+<title>Pro Teleprompter</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
 <style>
-body{
-    margin:0;
-    background:#000;
-    color:#fff;
-    overflow:hidden;
-    user-select:none;
-}
-*{-webkit-tap-highlight-color:transparent;}
+body{margin:0;background:#000;color:#fff;overflow:hidden;font-family:system-ui}
+#prompter{position:fixed;inset:0;padding:40px 40px 120px;font-size:clamp(22px,4vw,46px)}
+#content{position:relative;line-height:1.7}
+.word.active{background:#ffc107;color:#000;border-radius:4px;padding:2px 4px}
 
-#prompter{
-    position:fixed;
-    inset:0;
-    padding:60px 20px 90px;
-    overflow:hidden;
-    font-size:40px;
+/* FOOTER */
+#tools{
+ position:fixed;bottom:0;left:0;right:0;
+ background:rgba(0,0,0,.85);backdrop-filter:blur(8px);
+ padding:8px;display:flex;gap:6px;align-items:center;z-index:999
 }
-#content{
-    position:relative;
-    line-height:1.6;
-    will-change:transform;
+.tool-btn{
+ background:#222;color:#fff;border:none;
+ border-radius:8px;padding:6px 10px;font-size:18px
 }
-.word.active{
-    background:#ffc107;
-    color:#000;
-    border-radius:4px;
-    padding:2px 4px;
-}
-#content.mirror{transform:scaleX(-1);}
-#content.mirror span{transform:scaleX(-1);display:inline-block;}
+.tool-btn.active{background:#0d6efd}
+.tool-range{width:80px}
 
-footer{
-    position:fixed;
-    bottom:0;left:0;right:0;
-    background:rgba(0,0,0,.75);
-    backdrop-filter:blur(8px);
-    z-index:999;
-}
-footer button{font-size:20px;}
+/* VOLUME */
+#volume{position:fixed;left:10px;bottom:70px;width:120px;height:8px;background:#333;border-radius:5px;overflow:hidden}
+#volume div{height:100%;width:0%;background:#0d6efd}
 </style>
 </head>
 
 <body>
 
-<div id="prompter">
-    <div id="content">⚙️ नीचे Script बटन दबाकर text load करें</div>
-</div>
+<div id="prompter"><div id="content">📝 Script जोड़ें और ▶ दबाएँ…</div></div>
+<div id="volume"><div></div></div>
 
-<footer class="p-2 text-center">
-<div class="d-flex justify-content-around align-items-center">
-<button class="btn btn-light" id="playPause">▶</button>
-<button class="btn btn-secondary" id="speedDown">➖</button>
-<button class="btn btn-secondary" id="speedUp">➕</button>
-<button class="btn btn-secondary" id="fontDown">A−</button>
-<button class="btn btn-secondary" id="fontUp">A+</button>
-<button class="btn btn-secondary" id="mirrorBtn">🪞</button>
-<button class="btn btn-secondary" id="highlightBtn">✨</button>
-<button class="btn btn-secondary" id="voiceBtn">🎤</button>
-<button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#scriptModal">📜</button>
-<button class="btn btn-light" id="fullscreenBtn">⛶</button>
+<!-- FOOTER TOOLS -->
+<div id="tools">
+ <button class="tool-btn" id="play">▶</button>
+ <button class="tool-btn" id="rewind">⏪</button>
+
+ <button class="tool-btn active" id="voice">🎤</button>
+ <button class="tool-btn" id="highlight">🔦</button>
+ <button class="tool-btn" id="mirror">🪞</button>
+
+ <input type="range" min="0.1" max="3" step="0.1" value="0.6" id="speed" class="tool-range">
+ <input type="range" min="20" max="80" value="40" id="fontSize" class="tool-range">
+ <input type="color" id="fontColor">
+
+ <button class="tool-btn" data-bs-toggle="modal" data-bs-target="#scriptModal">📝</button>
+ <button class="tool-btn" id="fullscreen">⛶</button>
 </div>
-</footer>
 
 <!-- SCRIPT MODAL -->
-<div class="modal fade" id="scriptModal" tabindex="-1">
-<div class="modal-dialog modal-dialog-scrollable modal-lg">
+<div class="modal fade" id="scriptModal">
+<div class="modal-dialog modal-lg modal-dialog-scrollable">
 <div class="modal-content text-dark">
 <div class="modal-header">
 <h5 class="modal-title">Script Manager</h5>
@@ -82,17 +66,18 @@ footer button{font-size:20px;}
 </div>
 <div class="modal-body">
 
-<div class="alert alert-info" id="micInfo">
-🎤 Start पर microphone permission माँगा जाएगा
-</div>
+<label>Script Name</label>
+<input id="scriptName" class="form-control mb-2">
 
-<input class="form-control mb-2" id="scriptName" placeholder="Script name">
-<textarea class="form-control mb-2" rows="4" id="scriptText" placeholder="Write script here..."></textarea>
+<label>Script Text</label>
+<textarea id="scriptText" rows="6" class="form-control mb-3"></textarea>
 
-<button class="btn btn-success w-100 mb-2" id="saveScript">💾 Save Script</button>
-<select class="form-select mb-2" id="playlist" size="5"></select>
-<button class="btn btn-primary w-100 mb-2" id="playScript">▶ Play Selected</button>
-<button class="btn btn-danger w-100" id="deleteScript">🗑 Delete Selected</button>
+<button class="btn btn-success w-100 mb-2" id="saveScript">💾 Save / Update</button>
+
+<select id="scriptList" class="form-select mb-2"></select>
+
+<button class="btn btn-primary w-100 mb-2" id="loadScript">▶ Load Script</button>
+<button class="btn btn-danger w-100" id="deleteScript">🗑 Delete Script</button>
 
 </div>
 </div>
@@ -100,148 +85,114 @@ footer button{font-size:20px;}
 </div>
 
 <script>
-let scrollPos=0,isPaused=true;
-let manualSpeed=0.6,fontSize=40;
-let highlight=false,mirror=false,voiceAssist=true;
-let words=[],audioCtx,analyser,dataArray,silence=0;
-const STEP_SCROLL = 100;
+let ctx, analyser, data;
+let scrollPos=0,speed=0.6,paused=true;
+let voice=true,highlight=false,mirrored=false;
+let words=[],index=0;
+let rewinding=false;
 
-/* PREPARE SCRIPT */
-function prepareText(text){
-    if(!text||!text.trim()){
-        $("#content").html("⚠️ Script empty है");
-        return;
-    }
-    words=text.trim().split(/\s+/);
-    let html="";
-    words.forEach((w,i)=>html+=`<span class="word" data-i="${i}">${w}</span> `);
-    $("#content").html(html).css("top","0px");
-    scrollPos=0;
+/* TEXT */
+function prepare(text){
+ words=text.split(/\s+/);
+ $("#content").html(words.map((w,i)=>`<span class="word" data-i="${i}">${w}</span>`).join(" "));
+ scrollPos=0;index=0;
 }
 
-/* MICROPHONE */
-function startMic(){
-    if(audioCtx) return;
-    navigator.mediaDevices.getUserMedia({audio:true})
-    .then(stream=>{
-        $("#micInfo").hide();
-        audioCtx=new AudioContext();
-        analyser=audioCtx.createAnalyser();
-        audioCtx.createMediaStreamSource(stream).connect(analyser);
-        analyser.fftSize=256;
-        dataArray=new Uint8Array(analyser.frequencyBinCount);
-        animate();
-    })
-    .catch(()=>{
-        voiceAssist=false;
-        $("#micInfo").text("❌ Microphone denied — manual mode active");
-        animate();
-    });
-}
-
-/* MAIN LOOP */
-function animate(){
-    if(analyser){
-        analyser.getByteFrequencyData(dataArray);
-        let energy=dataArray.slice(10,40).reduce((a,b)=>a+b,0);
-        if(energy<180){silence++;if(silence>25)isPaused=true;}
-        else silence=0;
-    }
-
-    if(!isPaused){
-        scrollPos+=manualSpeed*(voiceAssist?1.2:1);
-        $("#content").css("top",-scrollPos+"px");
-    }
-
-    if(highlight){
-        $("span").removeClass("active");
-        let idx=Math.floor((scrollPos/$("#content")[0].scrollHeight)*words.length);
-        $(`span[data-i="${idx}"]`).addClass("active");
-    }
-
-    requestAnimationFrame(animate);
-}
-
-/* MANUAL SCROLL */
-function scrollByStep(px){
-    scrollPos=Math.max(0,scrollPos+px);
-    $("#content").css("top",-scrollPos+"px");
-}
-
-/* UI CONTROLS */
-$("#playPause").click(()=>{
-    isPaused=!isPaused;
-    $("#playPause").text(isPaused?"▶":"⏸");
-    if(!audioCtx) startMic();
+/* MIC */
+navigator.mediaDevices.getUserMedia({audio:true}).then(s=>{
+ ctx=new AudioContext();
+ analyser=ctx.createAnalyser();
+ let src=ctx.createMediaStreamSource(s);
+ src.connect(analyser);
+ analyser.fftSize=256;
+ data=new Uint8Array(analyser.frequencyBinCount);
+ loop();
 });
-$("#speedUp").click(()=>manualSpeed=Math.min(3,manualSpeed+.1));
-$("#speedDown").click(()=>manualSpeed=Math.max(.1,manualSpeed-.1));
-$("#fontUp").click(()=>$("#prompter").css("font-size",++fontSize+"px"));
-$("#fontDown").click(()=>$("#prompter").css("font-size",fontSize=Math.max(16,--fontSize)+"px"));
-$("#mirrorBtn").click(()=>$("#content").toggleClass("mirror",mirror=!mirror));
-$("#highlightBtn").click(()=>highlight=!highlight);
-$("#voiceBtn").click(()=>voiceAssist=!voiceAssist);
-$("#fullscreenBtn").click(()=>document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen());
 
-/* STORAGE */
+/* LOOP */
+function loop(){
+ analyser.getByteFrequencyData(data);
+ let energy=data.slice(10,40).reduce((a,b)=>a+b,0);
+ $("#volume div").css("width",Math.min(100,energy/5)+"%");
+ if(!paused){
+  let boost=voice?Math.min(1.4,Math.max(0.8,energy/350)):1;
+  scrollPos+=speed*boost;
+  $("#content").css("top",-scrollPos+"px");
+  if(highlight){
+   $(".word").removeClass("active");
+   $(`.word[data-i='${Math.floor(index)}']`).addClass("active");
+   index+=speed*0.03;
+  }
+ }
+ requestAnimationFrame(loop);
+}
+
+/* FOOTER CONTROLS */
+$("#play").click(()=>{
+ if(words.length===0){
+  alert("पहले Script load करें");
+  return;
+ }
+ paused=!paused;
+ $("#play").text(paused?"▶":"⏸");
+});
+
+$("#rewind").on("mousedown touchstart",()=>{
+ rewinding=true;
+ (function r(){
+  if(!rewinding)return;
+  scrollPos=Math.max(0,scrollPos-4);
+  $("#content").css("top",-scrollPos+"px");
+  requestAnimationFrame(r);
+ })();
+}).on("mouseup touchend",()=>rewinding=false);
+
+$("#voice").click(()=>{voice=!voice;$("#voice").toggleClass("active",voice)});
+$("#highlight").click(()=>{highlight=!highlight;$("#highlight").toggleClass("active",highlight)});
+$("#mirror").click(()=>{
+ mirrored=!mirrored;
+ $("#mirror").toggleClass("active",mirrored);
+ $("#content").css("transform",mirrored?"scaleX(-1)":"");
+});
+$("#speed").on("input",e=>speed=parseFloat(e.target.value));
+$("#fontSize").on("input",e=>$("#prompter").css("font-size",e.target.value+"px"));
+$("#fontColor").on("input",e=>$("#content").css("color",e.target.value));
+$("#fullscreen").click(()=>document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen());
+
+/* SCRIPT STORAGE */
 function loadList(){
-    let s=JSON.parse(localStorage.getItem("scripts")||"{}");
-    $("#playlist").empty();
-    Object.keys(s).forEach(k=>$("#playlist").append(`<option>${k}</option>`));
+ let s=JSON.parse(localStorage.getItem("teleScripts")||"{}");
+ $("#scriptList").empty();
+ Object.keys(s).forEach(k=>$("#scriptList").append(`<option>${k}</option>`));
 }
 loadList();
 
 $("#saveScript").click(()=>{
-    let s=JSON.parse(localStorage.getItem("scripts")||"{}");
-    s[$("#scriptName").val()]=$("#scriptText").val();
-    localStorage.setItem("scripts",JSON.stringify(s));
-    loadList();
+ let n=$("#scriptName").val(), t=$("#scriptText").val();
+ if(!n||!t)return alert("Name & Text required");
+ let s=JSON.parse(localStorage.getItem("teleScripts")||"{}");
+ s[n]=t;
+ localStorage.setItem("teleScripts",JSON.stringify(s));
+ loadList();
+ alert("Saved");
 });
-$("#playScript").click(()=>{
-    let s=JSON.parse(localStorage.getItem("scripts")||"{}");
-    prepareText(s[$("#playlist").val()]);
-    isPaused=false;
-    $("#playPause").text("⏸");
-    bootstrap.Modal.getInstance(scriptModal).hide();
-    startMic();
+
+$("#loadScript").click(()=>{
+ let s=JSON.parse(localStorage.getItem("teleScripts")||"{}");
+ let k=$("#scriptList").val();
+ if(!k)return;
+ $("#scriptText").val(s[k]);
+ prepare(s[k]);
+ paused=true;$("#play").text("▶");
 });
+
 $("#deleteScript").click(()=>{
-    let s=JSON.parse(localStorage.getItem("scripts")||"{}");
-    delete s[$("#playlist").val()];
-    localStorage.setItem("scripts",JSON.stringify(s));
-    loadList();
-});
-
-/* 🎧 BLUETOOTH MEDIA CONTROLS */
-if("mediaSession"in navigator){
-    navigator.mediaSession.metadata=new MediaMetadata({
-        title:"Smart Teleprompter",
-        artist:"Script Scroll",
-        album:"Teleprompter Mode"
-    });
-
-    navigator.mediaSession.setActionHandler("play",()=>{
-        isPaused=false;$("#playPause").text("⏸");
-    });
-    navigator.mediaSession.setActionHandler("pause",()=>{
-        isPaused=true;$("#playPause").text("▶");
-    });
-
-    navigator.mediaSession.setActionHandler("nexttrack",()=>{
-        scrollByStep(STEP_SCROLL); // ⏭ DOWN
-    });
-
-    navigator.mediaSession.setActionHandler("previoustrack",()=>{
-        scrollByStep(-STEP_SCROLL); // ⏮ UP
-    });
-}
-
-/* MEDIA KEY FALLBACK */
-document.addEventListener("keydown",e=>{
-    if(e.code==="MediaPlayPause"){isPaused=!isPaused;}
-    if(e.code==="MediaNextTrack")scrollByStep(STEP_SCROLL);
-    if(e.code==="MediaPreviousTrack")scrollByStep(-STEP_SCROLL);
-    $("#playPause").text(isPaused?"▶":"⏸");
+ let s=JSON.parse(localStorage.getItem("teleScripts")||"{}");
+ let k=$("#scriptList").val();
+ if(!k)return;
+ delete s[k];
+ localStorage.setItem("teleScripts",JSON.stringify(s));
+ loadList();
 });
 </script>
 
