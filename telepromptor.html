@@ -202,12 +202,26 @@ body{margin:0;background:#000;color:#fff;overflow:hidden;font-family:system-ui;}
 <button class="btn-close" data-bs-dismiss="modal"></button>
 </div>
 <div class="modal-body">
-<label>Script Name</label>
-<input id="scriptName" class="form-control mb-2">
-<label>Script Text</label>
-<textarea id="scriptText" rows="6" class="form-control mb-3"></textarea>
+
+   <div class="form-floating">
+     <input type="text" value="2" id="scriptName" class="form-control" placeholder="Script Name">
+     <label>Script Name</label>
+   </div>
+
+   <div class="form-floating">
+     <textarea value="" id="scriptText" rows="6" class="form-control" placeholder="Script Text"></textarea>
+     <label>Script Text</label>
+   </div>
+
+
+
+  
+  
 <button class="btn btn-success w-100 mb-2" id="saveScript">💾 Save / Update</button>
-<select id="scriptList" class="form-select mb-2"></select>
+  <div class="form-floating">
+    <select id="scriptList" class="form-select js-choice z-index-9" data-placeholder="false"></select>
+    <label for="scriptList">Select saved Script</label>
+  </div>
 <button class="btn btn-primary w-100 mb-2" id="loadScript">▶ Load Script</button>
 <button class="btn btn-danger w-100" id="deleteScript">🗑 Delete Script</button>
 </div>
