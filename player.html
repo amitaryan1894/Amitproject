@@ -171,6 +171,17 @@ $("#playlist").on("click","li", function(){
  playVideo(i);
 });
 
+ $("#next").click(()=>{
+  const nextIndex = Math.min(state.index + 1, videoFiles.length - 1);
+  playVideo(nextIndex);
+});
+
+ $("#prev").click(()=>{
+  const prevIndex = Math.max(state.index - 1, 0);
+  playVideo(prevIndex);
+});
+
+
 
 
 const video=$("#video")[0];
@@ -304,3 +315,4 @@ $("#subToggle").click(()=>{
 
 </body>
 </html>
+
