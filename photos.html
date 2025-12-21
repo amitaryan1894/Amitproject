@@ -123,26 +123,28 @@
                 <label>Page Description</label>
                 </div>
 
-
-
-         
-
-                <div class="row g-3">
-                  <div class="col-6">
-                    <label class="form-label">Columns</label>
-                    <input id="colsInput" type="number" value="2" min="1" max="6" class="form-control">
-                  </div>
-                  <div class="col-6">
-                    <label class="form-label">Gap (px)</label>
-                    <input id="gapInput" type="number" value="6" class="form-control">
-                  </div>
+                <div class="row g-3 mb-3">
+                  
+                <div class="form-floating col-6">
+                <input type="number" value="2" min="1" max="6" id="colsInput" class="form-control" placeholder="1">
+                <label>Columns</label>
                 </div>
 
-                <div class="row g-3 mt-1">
-                  <div class="col-6">
-                    <label class="form-label">Page Margin (mm)</label>
-                    <input id="marginInput" type="number" class="form-control" value="2">
-                  </div>
+
+                <div class="form-floating col-6">
+                <input type="number" value="6" id="gapInput" class="form-control" placeholder="1">
+                <label>Gap (px)</label>
+                </div>
+                  
+                </div>
+
+                <div class="row g-3 mb-3">
+
+                  <div class="form-floating col-6">
+                <input type="number" value="2" id="marginInput" class="form-control" placeholder="2">
+                <label>Page Margin (mm)</label>
+                </div>
+
                   <div class="col-6">
                     <label class="form-label">Image Fit</label>
                     <select id="fitMode" class="form-select">
@@ -419,6 +421,7 @@
 
   render();
 </script>
+
 
 
 
