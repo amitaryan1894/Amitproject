@@ -217,8 +217,14 @@ body{margin:0;background:#000;color:#fff;overflow:hidden;font-family:system-ui;}
 
   
   
-<button class="btn btn-success w-100 mb-3" id="saveScript">💾 Save / Update</button>
-  <div class="form-floating mb-3">
+<button class="btn btn-success w-100" id="saveScript">💾 Save / Update</button>
+  <div class="position-relative my-2">
+    <hr>
+    <p class="small bg-mode position-absolute top-50 start-50 translate-middle px-2">Saved Script</p>
+  </div>
+
+  
+  <div class="form-floating mb-2">
     <select id="scriptList" class="form-select" ></select>
     <label for="scriptList">Select saved Script</label>
   </div>
