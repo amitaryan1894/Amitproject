@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>A4 Photo Collage — Bootstrap 5 Version</title>
+
+
+    <!-- OG-Meta -->
+    <meta property="og:title" content="Mission Shakti Yojna " />
+    <meta property="og:description" content="Mission Shakti Yojna " />
+    <meta property="og:site_name" content="Mission Shakti Yojna" />
+    <meta property="og:image" content="https://amitaryan1894.github.io/Amitproject/og-image.jpg" />
+    <!-- OG-Meta -->
+
+    <!-- Twitter-Meta -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Mission Shakti Yojna" />
+    <meta name="twitter:description" content="Mission Shakti Yojna" />
+    <meta name="twitter:image" content="https://amitaryan1894.github.io/Amitproject/og-image.jpg" />
+    <!-- Twitter-Meta -->
+
+
+
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Poppins:wght@400;500;700&display=swap">
+    <!-- END Google Font -->
+
+
+    <!-- Bootstrap 5 -->
+    <link href="./style.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: #111;
+            color: #fff
+        }
+
+        header {
+            border-bottom: 1px solid #333
+        }
+
+        #title {
+            font-size: 2rem;
+            font-weight: bold
+        }
+
+        #desc {
+            color: #aaa
+        }
+
+        video {
+            background: #000;
+            border-radius: 8px
+        }
+
+        .playlist {
+            max-height: 450px;
+            overflow: auto;
+            background: #1b1b1b;
+            border-radius: 8px;
+        }
+
+        .playlist li {
+            cursor: pointer;
+            padding: 10px;
+            border-bottom: 1px solid #333;
+        }
+
+        .playlist li.active {
+            background: #0d6efd
+        }
+
+        .big-btn button {
+            font-size: 1.1rem
+        }
+
+        #blackScreen {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            display: none;
+            z-index: 9999;
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+
+
+
+
+
+        <header class="navbar-light header-sticky border-bottom border-2">
+            <nav class="navbar">
+                <div class="container-fluid main-header">
+                    <div class="d-flex">
+                        <div class="d-grid navbar-expand-xl">
+                            <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="offcanvas"
+                                data-bs-target="#offcanvasSidebar" aria-controls="offcanvasSidebar"
+                                aria-expanded="false" aria-label="Toggle navigation" data-bs-auto-close="outside">
+                                <span class="navbar-toggler-animation">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </span>
+                            </button>
+
+                        </div>
+                        <a class="navbar-brand" href="./index.html">
+                            <img class="navbar-brand-item" style="max-height: 51px;" src="./logo.jpg" alt="logo"
+                                title="Multi Mini Projhets">
+                        </a>
+                    </div>
+
+                </div>
+            </nav>
+        </header>
+
+        <div class="container-fluid my-3">
+
+            <div id="blackScreen"></div>
+
+            <div class="container-fluid p-3">
+
+                <div class="text-center mb-3">
+                    <div contenteditable id="title">Department Training Session</div>
+                    <div contenteditable id="desc">Select folder to start playlist</div>
+                </div>
+
+                <div class="row">
+
+                    <!-- PLAYLIST -->
+                    <div class="col-md-3 mb-3">
+                        <input type="file" id="folderPicker" class="form-control mb-2" webkitdirectory multiple
+                            accept="video/*">
+
+                        <ul id="playlist" class="playlist list-unstyled"></ul>
+                    </div>
+
+                    <!-- VIDEO -->
+                    <div class="col-md-9">
+                        <video id="video" class="w-100" height="450"></video>
+
+                        <div class="mt-3 d-flex gap-2 flex-wrap justify-content-center big-btn">
+
+                            <button id="play" class="btn btn-success">▶ Play</button>
+                            <button id="prev" class="btn btn-secondary">⏮ Prev</button>
+                            <button id="next" class="btn btn-secondary">Next ⏭</button>
+                            <button id="rewind" class="btn btn-warning">⏪ 10s</button>
+                            <button id="forward" class="btn btn-warning">10s ⏩</button>
+
+                            <select id="speed" class="form-select w-auto">
+                                <option value="0.75">0.75x</option>
+                                <option value="1">1x</option>
+                                <option value="1.25">1.25x</option>
+                                <option value="1.5">1.5x</option>
+                            </select>
+
+                            <button id="fullscreen" class="btn btn-primary">⛶</button>
+                            <button id="blackBtn" class="btn btn-dark">⬛</button>
+                            <button id="reset" class="btn btn-danger">Reset</button>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+            <script>
+                const video = $("#video")[0];
+                let files = [];
+
+                const state = {
+                    title: "",
+                    desc: "",
+                    index: 0,
+                    time: 0,
+                    speed: 1
+                };
+
+                function save() {
+                    localStorage.setItem("deptPlayer", JSON.stringify(state));
+                }
+
+                function load() {
+                    const d = localStorage.getItem("deptPlayer");
+                    if (!d) return;
+                    Object.assign(state, JSON.parse(d));
+                    $("#title").text(state.title);
+                    $("#desc").text(state.desc);
+                    $("#speed").val(state.speed);
+                    video.playbackRate = state.speed;
+                }
+                load();
+
+                /* FOLDER PICK */
+                $("#folderPicker").on("change", function () {
+                    files = [...this.files].filter(f => f.type.includes("video"));
+                    $("#playlist").empty();
+
+                    files.forEach((file, i) => {
+                        $("#playlist").append(
+                            `<li data-i="${i}">${file.name}</li>`
+                        );
+                    });
+
+                    playVideo(state.index || 0);
+                });
+
+                /* PLAY VIDEO */
+                function playVideo(i) {
+                    if (!files[i]) return;
+                    state.index = i;
+                    video.src = URL.createObjectURL(files[i]);
+                    video.play();
+                    $("#play").text("⏸ Pause");
+
+                    $("#playlist li").removeClass("active")
+                        .eq(i).addClass("active");
+
+                    save();
+                }
+
+                /* PLAYLIST CLICK */
+                $("#playlist").on("click", "li", function () {
+                    playVideo($(this).data("i"));
+                });
+
+                /* CONTROLS */
+                $("#play").click(() => {
+                    if (video.paused) {
+                        video.play(); $("#play").text("⏸ Pause");
+                    } else {
+                        video.pause(); $("#play").text("▶ Play");
+                    }
+                });
+
+                $("#prev").click(() => playVideo(Math.max(0, state.index - 1)));
+                $("#next").click(() => playVideo(Math.min(files.length - 1, state.index + 1)));
+
+                $("#rewind").click(() => video.currentTime -= 10);
+                $("#forward").click(() => video.currentTime += 10);
+
+                $("#speed").change(function () {
+                    state.speed = this.value;
+                    video.playbackRate = this.value;
+                    save();
+                });
+
+                $("#fullscreen").click(() => video.requestFullscreen());
+
+                $("#blackBtn").click(() => $("#blackScreen").toggle());
+
+                /* SAVE TITLE DESC */
+                $("#title,#desc").on("input", () => {
+                    state.title = $("#title").text();
+                    state.desc = $("#desc").text();
+                    save();
+                });
+
+                /* RESUME */
+                video.addEventListener("timeupdate", () => {
+                    state.time = video.currentTime;
+                    save();
+                });
+
+                video.addEventListener("loadedmetadata", () => {
+                    if (state.time) video.currentTime = state.time;
+                });
+
+                /* AUTO NEXT */
+                video.addEventListener("ended", () => {
+                    if (state.index < files.length - 1) {
+                        playVideo(state.index + 1);
+                    }
+                });
+
+                /* RESET */
+                $("#reset").click(() => {
+                    if (confirm("Reset all settings?")) {
+                        localStorage.removeItem("deptPlayer");
+                        location.reload();
+                    }
+                });
+
+                /* KEYS */
+                document.addEventListener("keydown", e => {
+                    if (e.key == " ") { e.preventDefault(); $("#play").click(); }
+                    if (e.key == "ArrowRight") video.currentTime += 10;
+                    if (e.key == "ArrowLeft") video.currentTime -= 10;
+                    if (e.key == "b") $("#blackBtn").click();
+                });
+            </script>
+        </div>
+        
+        
+        <footer class="bg-dark">
+        
+            <div class="d-lg-flex justify-content-between align-items-center p-3 text-center text-lg-start">
+                <!-- copyright text -->
+                <div class="text-muted text-primary-hover"> Copyrights ©2023 DHEW. Build by <a href="https://www.webestica.com/"
+                        class="text-muted">Amit Kumar (DEO)</a>. </div>
+        
+            </div>
+        
+        </footer>
+        
+        <!-- Bootstrap JS -->
+        <script src="./bootstrap.bundle.js"></script>
+        <script src="./functions.js"></script>
+
+        
+
+
+
+
+
+
+
+    </main>
+
+</body>
+
+</html>
