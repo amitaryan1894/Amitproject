@@ -42,6 +42,16 @@ video::cue{
  padding:6px;margin-bottom:6px
 }
 .clip-item small{color:var(--muted)}
+
+ video::cue {
+  font-size: var(--cue-font-size,32px);
+  color: var(--cue-color,#fff);
+  background: rgba(0,0,0,0.75);
+}
+.sub-top::cue{vertical-align:top}
+.sub-center::cue{vertical-align:middle}
+.sub-bottom::cue{vertical-align:bottom}
+
 </style>
 </head>
 
@@ -313,6 +323,28 @@ $("#toggleStudio").click(()=>{
  save();
 });
 
+ // Live subtitle style update
+$("#subSize").on("input", function(){
+  const size = $(this).val() + "px";
+  video.querySelectorAll("track").forEach(track=>{
+    track.mode="hidden"; // temporarily hide
+    track.mode="showing"; // restore to apply style
+  });
+  document.querySelector("video").style.setProperty("--cue-font-size", size);
+});
+
+$("#subColor").on("input", function(){
+  const color = $(this).val();
+  document.querySelector("video").style.setProperty("--cue-color", color);
+});
+
+$("#subPosition").on("change", function(){
+  const pos = $(this).val(); // bottom, center, top
+  document.querySelector("video").classList.remove("sub-top","sub-center","sub-bottom");
+  document.querySelector("video").classList.add("sub-"+pos);
+});
+
+
 /* VIDEO CONTROLS */
 $("#play").click(()=>video.paused?video.play():video.pause());
 $("#rewind").click(()=>video.currentTime-=10);
@@ -327,6 +359,7 @@ $("#subToggle").click(()=>{
 
 </body>
 </html>
+
 
 
 
