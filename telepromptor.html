@@ -1,13 +1,39 @@
-<!DOCTYPE html>
-<html lang="hi">
-<head>
-<meta charset="UTF-8">
-<title>Pro Teleprompter – Smart Voice Control</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<!doctype html>
+<html lang="en">
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Salary Table Sheet Creator — Bootstrap 5 Version</title>
+
+  
+   <!-- OG-Meta -->
+    <meta property="og:title" content="Mission Shakti Yojna " />
+    <meta property="og:description" content="Mission Shakti Yojna " />
+    <meta property="og:site_name" content="Mission Shakti Yojna" />
+    <meta property="og:image" content="https://amitaryan1894.github.io/Amitproject/og-image.jpg" />
+    <!-- OG-Meta -->
+
+    <!-- Twitter-Meta -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Mission Shakti Yojna" />
+    <meta name="twitter:description" content="Mission Shakti Yojna" />
+    <meta name="twitter:image" content="https://amitaryan1894.github.io/Amitproject/og-image.jpg" />
+    <!-- Twitter-Meta -->
+
+  <!-- Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Poppins:wght@400;500;700&display=swap"
+    rel="stylesheet">
+
+  <!-- Bootstrap 5 -->
+  <link href="./choices.min.css" rel="stylesheet">
+  <link href="./flatpickr.min.css" rel="stylesheet">
+  <link href="./tagsinput.css" rel="stylesheet">
+  <link href="./style.css" rel="stylesheet">
+ 
 
 <style>
 body{margin:0;background:#000;color:#fff;overflow:hidden;font-family:system-ui;}
@@ -80,6 +106,62 @@ body{margin:0;background:#000;color:#fff;overflow:hidden;font-family:system-ui;}
 </head>
 
 <body>
+ <main>
+
+   <!-- Sidebar START -->
+    <nav class="navbar sidebar navbar-expand-xl navbar-light bg-mode" style="z-index: 2000;">
+
+
+      <div class="offcanvas offcanvas-start flex-row custom-scrollbar h-100" data-bs-backdrop="true" tabindex="-1"
+        id="offcanvasSidebar">
+        <div class="offcanvas-body sidebar-content d-flex flex-column pt-4">
+
+
+          <!-- Sidebar menu START -->
+          <ul class="navbar-nav flex-column" id="navbar-sidebar">
+
+            <!-- Menu item -->
+
+            <li class="nav-item"> <a class="nav-link " href="./photos.html">media Cover</a></li>
+
+            <li class="nav-item"> <a class="nav-link active" href="./index.html">Salary Creater</a></li>
+
+            <li class="nav-item"> <a class="nav-link " href="./telepromptor.html">Teleprompter</a></li>
+
+
+          </ul>
+          <!-- Sidebar menu end -->
+
+
+        </div>
+      </div>
+    </nav>
+    <!-- Sidebar END -->
+ <div class="page-content">
+
+      <header class="navbar-light header-sticky border-bottom border-2">
+        <nav class="navbar">
+          <div class="container-fluid main-header">
+            <div class="d-flex">
+              <div class="d-grid navbar-expand-xl">
+                <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasSidebar" aria-controls="offcanvasSidebar" aria-expanded="false" aria-label="Toggle navigation" data-bs-auto-close="outside">
+                  <span class="navbar-toggler-animation">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </span>
+                </button>
+              
+              </div>
+              <a class="navbar-brand" href="./index.html">
+                <img class="navbar-brand-item" src="./logo.jpg" alt="logo" title="K.D College Raniganj">
+              </a>
+            </div>
+           
+          </div>
+        </nav>
+      </header>
+   <div class="container-fluid">
 
 <div id="prompter">
  <div id="content">📝 Script जोड़ें और ▶ दबाएँ…</div>
@@ -129,6 +211,22 @@ body{margin:0;background:#000;color:#fff;overflow:hidden;font-family:system-ui;}
 </div>
 </div>
 </div>
+</div></div>
+  <main>
+
+     <!-- Bootstrap JS -->
+      <script src="./jquery.min.js"></script>
+
+      <script src="./bootstrap.bundle.js"></script>
+
+      <script src="./flatpickr.min.js"></script>
+
+      <script src="./choices.min.js"></script>
+
+      <script src="./tagsinput.js"></script>
+
+      <script src="./functions.js"></script>
+
 
 <script>
 /* ================= CORE ================= */
