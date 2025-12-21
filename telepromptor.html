@@ -20,8 +20,7 @@ body{margin:0;background:#000;color:#fff;overflow:hidden;font-family:system-ui;}
 #toolsToggle{
  position:fixed;
  left:10px;
- top:50%;
- transform:translateY(-50%);
+ top:0%;
  z-index:1000;
  background:#0d6efd;
  color:#fff;
@@ -38,6 +37,7 @@ body{margin:0;background:#000;color:#fff;overflow:hidden;font-family:system-ui;}
  top:0;
  bottom:0;
  width:70px;
+ padding-top:20px;
  background:rgba(0,0,0,.85);
  display:flex;
  flex-direction:column;
@@ -132,6 +132,11 @@ body{margin:0;background:#000;color:#fff;overflow:hidden;font-family:system-ui;}
 
 <script>
 /* ================= CORE ================= */
+let touchStartX = 0;
+let touchEndX = 0;
+const SWIPE_EDGE = 30;   // px from left edge
+const SWIPE_MIN = 60;   // minimum swipe distance
+ 
 let wakeLock = null;
 let ctx, analyser, data;
 let micStarted=false;
@@ -428,6 +433,37 @@ $("#scriptList").on("change", function(){
 $("#toolsToggle").click(()=>{
  $("#tools").toggleClass("show");
 });
+
+ /* ================= SWIPE TO OPEN / CLOSE TOOLS ================= */
+
+document.addEventListener("touchstart", e=>{
+ touchStartX = e.touches[0].clientX;
+});
+
+document.addEventListener("touchend", e=>{
+ touchEndX = e.changedTouches[0].clientX;
+ handleSwipe();
+});
+
+function handleSwipe(){
+ let diff = touchEndX - touchStartX;
+
+ // 👉 Swipe from LEFT EDGE → OPEN
+ if(
+  touchStartX < SWIPE_EDGE &&
+  diff > SWIPE_MIN
+ ){
+  $("#tools").addClass("show");
+ }
+
+ // 👈 Swipe LEFT → CLOSE (when open)
+ if(
+  $("#tools").hasClass("show") &&
+  diff < -SWIPE_MIN
+ ){
+  $("#tools").removeClass("show");
+ }
+}
 </script>
 
 </body>
