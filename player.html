@@ -48,6 +48,16 @@ video::cue{
   color: var(--cue-color,#fff);
   background: rgba(0,0,0,0.75);
 }
+
+ video::cue {
+  font-size: var(--cue-font-size,32px);
+  color: var(--cue-color,#fff);
+  background: rgba(0,0,0,0.75);
+  padding: 2px 6px;
+  border-radius: 8px;      /* 🔹 Rounded corners */
+  white-space: pre-line;   /* Preserve line breaks */
+}
+
 .sub-top::cue{vertical-align:top}
 .sub-center::cue{vertical-align:middle}
 .sub-bottom::cue{vertical-align:bottom}
@@ -359,6 +369,7 @@ $("#subToggle").click(()=>{
 
 </body>
 </html>
+
 
 
 
