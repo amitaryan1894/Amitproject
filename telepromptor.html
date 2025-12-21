@@ -37,14 +37,14 @@
 
 <style>
 body{margin:0;background:#000;color:#fff;overflow:hidden;font-family:system-ui;}
-#prompter{position:fixed;inset:0;padding:40px 40px 120px;font-size:40px;}
+#prompter{font-size:40px; height:100%; width:100%}
 #content{position:relative;line-height:1.7}
 .word.active{background:#ffc107;color:#000;border-radius:4px;padding:2px 4px}
 
 /* TOOLS */
 /* TOOLS TOGGLE BUTTON */
 #toolsToggle{
- position:fixed;
+
  left:10px;
  top:0%;
  z-index:1000;
@@ -59,8 +59,7 @@ body{margin:0;background:#000;color:#fff;overflow:hidden;font-family:system-ui;}
 /* LEFT TOOLS PANEL */
 #tools{
  position:fixed;
- left:0;
- top:30px;
+ top:80px;
  bottom:0;
  width:70px;
  background:rgba(0,0,0,.85);
@@ -124,9 +123,9 @@ body{margin:0;background:#000;color:#fff;overflow:hidden;font-family:system-ui;}
 
             <li class="nav-item"> <a class="nav-link " href="./photos.html">media Cover</a></li>
 
-            <li class="nav-item"> <a class="nav-link active" href="./index.html">Salary Creater</a></li>
+            <li class="nav-item"> <a class="nav-link " href="./index.html">Salary Creater</a></li>
 
-            <li class="nav-item"> <a class="nav-link " href="./telepromptor.html">Teleprompter</a></li>
+            <li class="nav-item"> <a class="nav-link active" href="./telepromptor.html">Teleprompter</a></li>
 
 
           </ul>
@@ -153,6 +152,8 @@ body{margin:0;background:#000;color:#fff;overflow:hidden;font-family:system-ui;}
                 </button>
               
               </div>
+              <!-- TOOLS TOGGLE -->
+               <button id="toolsToggle">☰</button>
               <a class="navbar-brand" href="./index.html">
                 <img class="navbar-brand-item" src="./logo.jpg" alt="logo" title="K.D College Raniganj">
               </a>
@@ -161,18 +162,7 @@ body{margin:0;background:#000;color:#fff;overflow:hidden;font-family:system-ui;}
           </div>
         </nav>
       </header>
-   <div class="container-fluid">
-
-<div id="prompter">
- <div id="content">📝 Script जोड़ें और ▶ दबाएँ…</div>
-</div>
-
-<div id="volume"><div></div></div>
-
-<!-- TOOLS TOGGLE -->
-<button id="toolsToggle">☰</button>
-
-<!-- LEFT TOOLS PANEL -->
+      <!-- LEFT TOOLS PANEL -->
 <div id="tools" class="hidden">
  <button class="tool-btn" data-bs-toggle="modal" data-bs-target="#scriptModal">📝</button>
  <button class="tool-btn" id="play">▶</button>
@@ -189,6 +179,17 @@ body{margin:0;background:#000;color:#fff;overflow:hidden;font-family:system-ui;}
  
  <button class="tool-btn" id="fullscreen">⛶</button>
 </div>
+   <div class="container-fluid">
+
+<div id="prompter">
+ <div id="content">📝 Script जोड़ें और ▶ दबाएँ…</div>
+</div>
+
+<div id="volume"><div></div></div>
+
+
+
+
 
 <!-- SCRIPT MODAL -->
 <div class="modal fade" id="scriptModal">
@@ -589,6 +590,21 @@ function handleSwipe(){
   $("#tools").removeClass("show");
  }
 }
+
+/* ================= PROMPTER ONLY FULLSCREEN ================= */
+
+$("#fullscreen").click(()=>{
+ const prompter = document.getElementById("prompter");
+
+ if(!document.fullscreenElement){
+  prompter.requestFullscreen().catch(err=>{
+   console.warn("Fullscreen failed:", err);
+  });
+ }else{
+  document.exitFullscreen();
+ }
+});
+
 </script>
 
 </body>
