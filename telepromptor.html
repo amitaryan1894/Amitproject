@@ -85,6 +85,7 @@ body{margin:0;background:#000;color:#fff;overflow:hidden;font-family:system-ui;}
 
 <script>
 /* ================= CORE ================= */
+let wakeLock = null;
 let ctx, analyser, data;
 let micStarted=false;
 let scrollPos=0, speed=0.6, paused=true;
@@ -116,6 +117,31 @@ const LS={
 
 function saveSetting(k,v){localStorage.setItem(k,JSON.stringify(v));}
 function loadSetting(k,d){return JSON.parse(localStorage.getItem(k)??JSON.stringify(d));}
+
+ /* ================= SCREEN WAKE LOCK ================= */
+
+async function enableWakeLock(){
+ try{
+  if('wakeLock' in navigator && !wakeLock){
+   wakeLock = await navigator.wakeLock.request('screen');
+   console.log("🔒 Wake Lock Enabled");
+
+   wakeLock.addEventListener('release', ()=>{
+    console.log("🔓 Wake Lock Released");
+    wakeLock = null;
+   });
+  }
+ }catch(err){
+  console.warn("Wake Lock Failed:", err);
+ }
+}
+
+function disableWakeLock(){
+ if(wakeLock){
+  wakeLock.release();
+  wakeLock = null;
+ }
+}
 
 /* ================= INIT ================= */
 $(function(){
@@ -212,10 +238,28 @@ function loop(){
 
 /* ================= CONTROLS ================= */
 $("#play").click(()=>{
- if(words.length===0){alert("पहले Script load करें");return;}
+ if(words.length===0){
+  alert("पहले Script load करें");
+  return;
+ }
+
  startMic();
- paused=!paused;
- $("#play").text(paused?"▶":"⏸");
+ paused = !paused;
+ $("#play").text(paused ? "▶" : "⏸");
+
+ if(!paused){
+  enableWakeLock();   // 🔒 screen awake
+ }else{
+  disableWakeLock();  // 🔓 allow sleep
+ }
+});
+
+ document.addEventListener("visibilitychange", ()=>{
+ if(document.hidden){
+  disableWakeLock();
+ }else if(!paused){
+  enableWakeLock();
+ }
 });
 
 $("#voice").click(()=>{
