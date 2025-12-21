@@ -144,6 +144,7 @@ let scrollPos=0, speed=0.6, paused=true;
 let voice=true, highlight=false, mirrored=false;
 let words=[], index=0;
 let rewinding=false;
+let manualRewinding = false;
 
 /* ========== VOICE & SILENCE ========== */
 let manualVoiceOff=false;
@@ -264,6 +265,11 @@ function loop(){
  }
 
  if(!paused){
+  /* ⛔ Manual rewind has priority */
+if(manualRewinding){
+ requestAnimationFrame(loop);
+ return;
+}
   if(autoRewinding){
    let e=now-autoRewindStart;
    if(e<=AUTO_REWIND_DURATION){
@@ -312,6 +318,27 @@ $("#play").click(()=>{
  }else if(!paused){
   enableWakeLock();
  }
+});
+
+ /* ================= MANUAL REWIND ================= */
+
+$("#rewind").on("mousedown touchstart", function () {
+ manualRewinding = true;
+
+ (function rewindLoop(){
+  if(!manualRewinding) return;
+
+  scrollPos = Math.max(0, scrollPos - 4);
+  index = Math.max(0, index - 0.2);
+
+  $("#content").css("top", -scrollPos + "px");
+
+  requestAnimationFrame(rewindLoop);
+ })();
+});
+
+$("#rewind").on("mouseup touchend touchcancel", function () {
+ manualRewinding = false;
 });
 
 $("#voice").click(()=>{
