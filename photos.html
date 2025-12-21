@@ -145,14 +145,16 @@
                 <label>Page Margin (mm)</label>
                 </div>
 
-                  <div class="col-6">
-                    <label class="form-label">Image Fit</label>
-                    <select id="fitMode" class="form-select">
-                      <option value="fill">Stretch (Fill)</option>
+                  <div class="form-floating col-6">
+            <select class="form-select js-choice z-index-9" id="fitMode" data-placeholder="false">
+                <option value="fill">Stretch (Fill)</option>
                       <option value="cover">Cover (Crop)</option>
                       <option value="contain">Contain</option>
-                    </select>
-                  </div>
+            </select>
+            <label for="dir">Image Fit</label>
+          </div>
+
+                 
                 </div>
 
                 <div class="mb-3 mt-3">
@@ -421,6 +423,7 @@
 
   render();
 </script>
+
 
 
 
