@@ -180,23 +180,36 @@ $("#playlist").on("click","li", function(){
   playVideo(prevIndex);
 });
 
+ $("#title, #desc").on("input", function(){
+  state.title = $("#title").text();
+  state.desc  = $("#desc").text();
+  save();
+});
+
+
 
 
 
 const video=$("#video")[0];
 let videoFiles=[];
-const state={index:0,subtitles:{},hideStudio:false};
+const state = {index:0, subtitles:{}, hideStudio:false, title:"", desc:""};
 
 function save(){localStorage.setItem("playerState",JSON.stringify(state))}
 function load(){
- const d=localStorage.getItem("playerState");
- if(d)Object.assign(state,JSON.parse(d));
+ const d = localStorage.getItem("playerState");
+ if(d) Object.assign(state, JSON.parse(d));
 
+ // Restore Title & Description
+ if(state.title) $("#title").text(state.title);
+ if(state.desc)  $("#desc").text(state.desc);
+
+ // Restore Subtitle Studio layout
  if(state.hideStudio){
-  $("#studioPanel").addClass("hide");
-  $("#videoCol").removeClass("col-md-5").addClass("col-md-9");
+   $("#studioPanel").addClass("hide");
+   $("#videoCol").removeClass("col-md-5").addClass("col-md-9");
  }
 }
+
 load();
 
 /* ------------------ UTIL ------------------ */
@@ -314,5 +327,6 @@ $("#subToggle").click(()=>{
 
 </body>
 </html>
+
 
 
