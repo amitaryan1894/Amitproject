@@ -36,20 +36,6 @@
   <link href="https://amitaryan1894.github.io/Amitproject/style.css" rel="stylesheet">
   <style>
   :root { --a4-w: 344.4mm; --a4-h: 487.08mm; --gap: 6px; --cols: 3; --margin: 12mm; } body { font-family: system-ui, Segoe UI, Roboto, Arial; color: #222 } /* A4 Preview */ .a4 { width: calc(var(--a4-w) * 0.35); height: calc(var(--a4-h) * 0.35); background: #fff; border: 1px solid #bbb; box-shadow: 0 6px 18px rgba(0, 0, 0, .08); padding: var(--margin); box-sizing: border-box; overflow: hidden; position: relative; } .page-header2 { text-align: center; margin-bottom: 10px } .page-title { font-size: 20px; font-weight: 700 } .page-desc { font-size: 12px; color: #444 } /* Grid */ .grid { display: grid; grid-template-columns: repeat(var(--cols), 1fr); gap: var(--gap); height: calc(100% - 56px); } .cell { background: #eee; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid #e6e6e6; } .cell img { width: 100%; height: 100% } .fit-fill img { object-fit: fill } .fit-cover img { object-fit: cover } .fit-contain img { object-fit: contain; background: #f6f6f6 } /* Caption */ .caption { position: absolute; left: 6px; right: 6px; bottom: 6px; background: rgba(0, 0, 0, .45); padding: 6px 8px; color: #fff; font-size: 12px; border-radius: 6px; display: none; backdrop-filter: blur(2px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .cell:hover .caption { display: block } .remove-btn { position: absolute; top: 6px; right: 6px; width: 26px; height: 26px; background: rgba(0, 0, 0, .6); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; transition: .2s; } .cell:hover .remove-btn { opacity: 1 } /* Toast */ .toast-custom { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); background: #222; color: #fff; padding: 10px 16px; border-radius: 8px; display: none; } @media print { body * { visibility: hidden } .a4, .a4 * { visibility: visible } .a4 { position: fixed; left: 0; top: 0; margin: 0; width: 100%; height: 100%; box-shadow: none } }
-  .cell.blank {
-  background: #fafafa;
-  border: 2px dashed #bbb;
-  color: #888;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.cell.blank::after {
-  content: "Blank Photo";
-  position: absolute;
-  opacity: 0.6;
-}
-
   </style>
 </head>
 
@@ -177,15 +163,17 @@
                   <input type="file" id="fileInput" class="form-control" multiple accept="image/*">
                 </div>
 
-                <div class="form-floating mb-3">
-                    <input type="url" id="urlInput" class="form-control" placeholder="https://example.com">
-                    <label>QR Code URL</label>
-                </div>
+               <div class="form-floating mb-3">
+  <input type="url" id="urlInput" class="form-control" placeholder="https://example.com">
+  <label>QR Code URL (Add to Grid)</label>
+</div>
+
+<button id="addQrBtn" class="btn btn-success btn-sm w-100">
+  ➕ Add QR to Grid
+</button>
 
 
                 <div class="d-flex gap-2">
-                  <button id="btnAddBlank" class="btn btn-outline-primary btn-sm w-100 mt-2">➕ Add Blank Photo Cell</button>
-
                   <button id="btnClear" class="btn btn-secondary btn-sm">Clear</button>
                   <button id="btnPrint" class="btn btn-primary btn-sm">Print / PDF</button>
                   <button id="btnUndo" class="btn btn-warning btn-sm d-none">Undo</button>
@@ -208,16 +196,7 @@
               </div>
 
               <div class="grid" id="grid"></div>
-              <div style="position: absolute;
-    right: 4px;
-    bottom: 4px;
-    text-align: center;
-    background-color: #fff;
-    border-radius: 6px;
-    border: 1px solid;">
-                  <div style="font-size:10px;color:#444;font-weight: 900; margin-bottom: -5px;">Scan Me</div>
-  <canvas id="qrCanvas" width="120" height="120" style="padding:2px; ; display:none"></canvas>
-</div>
+ 
 
             </div>
           </div>
@@ -304,52 +283,73 @@
   }
 
   function render() {
-  document.documentElement.style.setProperty('--cols', colsInput.value);
-  document.documentElement.style.setProperty('--gap', gapInput.value + "px");
-  document.documentElement.style.setProperty('--margin', marginInput.value + "mm");
+    document.documentElement.style.setProperty('--cols', colsInput.value);
+    document.documentElement.style.setProperty('--gap', gapInput.value + "px");
+    document.documentElement.style.setProperty('--margin', marginInput.value + "mm");
 
-  grid.innerHTML = "";
-  pageTitle.textContent = titleInput.value || "(Title)";
-  pageDesc.textContent = descInput.value || "";
+    grid.innerHTML = "";
+    pageTitle.textContent = titleInput.value || "(Title)";
+    pageDesc.textContent = descInput.value || "";
 
-  grid.classList.remove("fit-fill", "fit-cover", "fit-contain");
-  grid.classList.add("fit-" + fitMode.value);
+    grid.classList.remove("fit-fill", "fit-cover", "fit-contain");
+    grid.classList.add("fit-" + fitMode.value);
 
-  images.forEach((obj, idx) => {
-    const cell = document.createElement("div");
-    cell.className = "cell" + (obj.blank ? " blank" : "");
-    cell.setAttribute("draggable", "true");
-    cell.dataset.index = idx;
+   images.forEach((obj, idx) => {
+  const cell = document.createElement("div");
+  cell.className = "cell";
+  cell.setAttribute("draggable", "true");
+  cell.dataset.index = idx;
 
-    // ✅ Image cell only
-    if (!obj.blank && obj.src) {
-      const img = document.createElement("img");
-      img.src = obj.src;
-      cell.appendChild(img);
-    }
+  if (obj.type === "qr") {
+    const wrapper = document.createElement("div");
+    wrapper.style.position = "absolute";
+    wrapper.style.textAlign = "center";
+    wrapper.style.backgroundColor = "#fff";
+    wrapper.style.borderRadius = "6px";
+    wrapper.style.border = "1px solid #000";
 
-    // ❌ Remove button
-    const remove = document.createElement("div");
-    remove.className = "remove-btn";
-    remove.innerHTML = "×";
-    remove.onclick = () => deleteImage(idx);
+    const label = document.createElement("div");
+    label.textContent = "Scan Me";
+    label.style.fontSize = "10px";
+    label.style.color = "#444";
+    label.style.fontWeight = "900";
+    label.style.marginBottom = "-5px";
 
-    // ✏️ Caption
-    const cap = document.createElement("div");
-    cap.className = "caption";
-    cap.textContent = obj.caption || "";
-    cap.onclick = () => editCaption(idx, cap);
+    const canvas = document.createElement("canvas");
+    canvas.width = 200;
+    canvas.height = 200;
+    canvas.style.padding = "2px";
+    canvas.style.display = "block";
 
-    addDragHandlers(cell);
+    new QRious({
+      element: canvas,
+      size: 200,
+      value: obj.url
+    });
 
-    cell.appendChild(remove);
-    cell.appendChild(cap);
-    grid.appendChild(cell);
-  });
+    wrapper.appendChild(label);
+    wrapper.appendChild(canvas);
+    cell.appendChild(wrapper);
+  } 
+  else {
+    const img = document.createElement("img");
+    img.src = obj.src;
+    cell.appendChild(img);
+  }
 
-  autoFixSpacing(parseInt(colsInput.value));
-}
+  const remove = document.createElement("div");
+  remove.className = "remove-btn";
+  remove.innerHTML = "×";
+  remove.onclick = () => deleteImage(idx);
 
+  cell.appendChild(remove);
+  addDragHandlers(cell);
+  grid.appendChild(cell);
+});
+
+
+    autoFixSpacing(parseInt(colsInput.value));
+  }
 
   function deleteImage(idx) {
     lastDeleted = { item: images[idx], index: idx };
@@ -467,38 +467,25 @@
 </script>
 
 <script>
-  const urlInput = document.getElementById("urlInput");
-  const qrCanvas = document.getElementById("qrCanvas");
+addQrBtn.addEventListener("click", () => {
+  const url = urlInput.value.trim();
+  if (!url) {
+    alert("Please enter a URL");
+    return;
+  }
 
-  const qr = new QRious({
-    element: qrCanvas,
-    size: 120,
-    value: ""
-  });
-
-  urlInput.addEventListener("input", () => {
-    const url = urlInput.value.trim();
-
-    if (url) {
-      qr.value = url;
-      qrCanvas.style.display = "block";
-    } else {
-      qrCanvas.style.display = "none";
-    }
-  });
-
-  document.getElementById("btnAddBlank").onclick = () => {
   images.push({
     id: uid(),
-    src: null,
-    caption: "",
-    blank: true
+    type: "qr",
+    url: url,
+    caption: "For more Detail Scan Me "
   });
+
+  urlInput.value = "";
   render();
-};
+});
 
 </script>
-
 
 
 
