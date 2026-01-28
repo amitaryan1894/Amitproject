@@ -304,50 +304,52 @@
   }
 
   function render() {
-    document.documentElement.style.setProperty('--cols', colsInput.value);
-    document.documentElement.style.setProperty('--gap', gapInput.value + "px");
-    document.documentElement.style.setProperty('--margin', marginInput.value + "mm");
+  document.documentElement.style.setProperty('--cols', colsInput.value);
+  document.documentElement.style.setProperty('--gap', gapInput.value + "px");
+  document.documentElement.style.setProperty('--margin', marginInput.value + "mm");
 
-    grid.innerHTML = "";
-    pageTitle.textContent = titleInput.value || "(Title)";
-    pageDesc.textContent = descInput.value || "";
+  grid.innerHTML = "";
+  pageTitle.textContent = titleInput.value || "(Title)";
+  pageDesc.textContent = descInput.value || "";
 
-    grid.classList.remove("fit-fill", "fit-cover", "fit-contain");
-    grid.classList.add("fit-" + fitMode.value);
+  grid.classList.remove("fit-fill", "fit-cover", "fit-contain");
+  grid.classList.add("fit-" + fitMode.value);
 
-    images.forEach((obj, idx) => {
-      const cell = document.createElement("div");
-      cell.className = "cell" + (obj.blank ? " blank" : "");
-      cell.setAttribute("draggable", "true");
-      cell.dataset.index = idx;
+  images.forEach((obj, idx) => {
+    const cell = document.createElement("div");
+    cell.className = "cell" + (obj.blank ? " blank" : "");
+    cell.setAttribute("draggable", "true");
+    cell.dataset.index = idx;
 
-      if (!obj.blank) {
-  const img = document.createElement("img");
-  img.src = obj.src;
-  cell.appendChild(img);
+    // ✅ Image cell only
+    if (!obj.blank && obj.src) {
+      const img = document.createElement("img");
+      img.src = obj.src;
+      cell.appendChild(img);
+    }
+
+    // ❌ Remove button
+    const remove = document.createElement("div");
+    remove.className = "remove-btn";
+    remove.innerHTML = "×";
+    remove.onclick = () => deleteImage(idx);
+
+    // ✏️ Caption
+    const cap = document.createElement("div");
+    cap.className = "caption";
+    cap.textContent = obj.caption || "";
+    cap.onclick = () => editCaption(idx, cap);
+
+    addDragHandlers(cell);
+
+    cell.appendChild(remove);
+    cell.appendChild(cap);
+    grid.appendChild(cell);
+  });
+
+  autoFixSpacing(parseInt(colsInput.value));
 }
 
-
-      const remove = document.createElement("div");
-      remove.className = "remove-btn";
-      remove.innerHTML = "×";
-      remove.onclick = () => deleteImage(idx);
-
-      const cap = document.createElement("div");
-      cap.className = "caption";
-      cap.textContent = obj.caption || "";
-      cap.onclick = () => editCaption(idx, cap);
-
-      addDragHandlers(cell);
-
-      cell.appendChild(img);
-      cell.appendChild(remove);
-      cell.appendChild(cap);
-      grid.appendChild(cell);
-    });
-
-    autoFixSpacing(parseInt(colsInput.value));
-  }
 
   function deleteImage(idx) {
     lastDeleted = { item: images[idx], index: idx };
@@ -496,6 +498,7 @@
 };
 
 </script>
+
 
 
 
