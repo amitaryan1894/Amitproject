@@ -555,9 +555,9 @@
                   (esic_org / settings.month_days * absent);
 
                 /* ================= TOTALS ================= */
-                let deduction_amt = epf_emp_amt + epf_org_amt + esic_emp_amt + esic_org_amt;
-                let net_amt = salary_amt - deduction_amt;
-                let approved_amt = salary_amt + epf_org_amt + esic_org_amt;
+                let deduction_amt = formatAmt(epf_emp_amt, true) + formatAmt(epf_org_amt, true) + formatAmt(esic_emp_amt, true) + formatAmt(esic_org_amt, true);
+                let net_amt = formatAmt(salary_amt, true) - formatAmt(deduction_amt, true);
+                let approved_amt = formatAmt(salary_amt, true) + formatAmt(epf_org_amt, true) + formatAmt(esic_org_amt, true);
 
                 totals.salary += settings.round ? Math.round(salary_amt) : salary_amt;
                 totals.e_epf += settings.round ? Math.round(epf_emp_amt) : epf_emp_amt;
