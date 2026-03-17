@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Salary Table Sheet Creator — Bootstrap 5 Version</title>
+  <title>Salary Creator — by amit dhew araira</title>
 
   
    <!-- OG-Meta -->
@@ -116,7 +116,7 @@
 
       <div class="overflow-scroll w-100">
       <div class="a4">
-        <h2 class="mb-4 text-center">Salary Table Sheet Creator</h2>
+        <h2 class="mb-4 text-center">DHEW Salary Table Sheet Creator</h2>
         <table class="table table-bordered text-center mb-0" id="empTable">
 
           <thead>
@@ -326,7 +326,7 @@
             calculation_enable: false,
             esic_limit: 21000,
             month_days: 30,
-            title: "Salary Table Sheet Creator",
+            title: "DHEW Salary Table Sheet Creator",
             signature: ""
           };
 
@@ -487,7 +487,7 @@
                 (esic_org / settings.month_days * absent);
 
               /* ================= TOTALS ================= */
-              let deduction_amt = epf_emp_amt + esic_emp_amt;
+              let deduction_amt = epf_emp_amt + epf_org_amt + esic_emp_amt + esic_org_amt;
               let net_amt = salary_amt - deduction_amt;
               let approved_amt = salary_amt + epf_org_amt + esic_org_amt;
 
@@ -663,7 +663,7 @@
 
 
 
-              let deduction_amt = epf_emp_amt + esic_emp_amt;
+              let deduction_amt = epf_emp_amt + epf_org_amt + esic_emp_amt + esic_org_amt;
               let net_amt = salary_amt - deduction_amt;
               let approved_amt = salary_amt + epf_org_amt + esic_org_amt;
 
