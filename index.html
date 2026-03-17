@@ -556,7 +556,7 @@
 
                 /* ================= TOTALS ================= */
                 let deduction_amt = formatAmt(epf_emp_amt, true) + formatAmt(epf_org_amt, true) + formatAmt(esic_emp_amt, true) + formatAmt(esic_org_amt, true);
-                let net_amt = formatAmt(salary_amt, true) - formatAmt(deduction_amt, true);
+                let net_amt = formatAmt(salary_amt, true) - formatAmt(epf_emp_amt, true) - formatAmt(esic_emp_amt, true);
                 let approved_amt = formatAmt(salary_amt, true) + formatAmt(epf_org_amt, true) + formatAmt(esic_org_amt, true);
 
                 totals.salary += settings.round ? Math.round(salary_amt) : salary_amt;
@@ -730,7 +730,7 @@
                 let esic_org_amt = (emp.deduction_on == "1" && esicEligible) ? (salary_amt * 0.0325) : 0;
 
                 let deduction_amt = formatAmt(epf_emp_amt, true) + formatAmt(epf_org_amt, true) + formatAmt(esic_emp_amt, true) + formatAmt(esic_org_amt, true);
-                let net_amt = formatAmt(salary_amt, true) - formatAmt(deduction_amt, true);
+                let net_amt = formatAmt(salary_amt, true) - formatAmt(epf_emp_amt, true) - formatAmt(esic_emp_amt, true);
                 let approved_amt = formatAmt(salary_amt, true) + formatAmt(epf_org_amt, true) + formatAmt(esic_org_amt, true);
 
 
